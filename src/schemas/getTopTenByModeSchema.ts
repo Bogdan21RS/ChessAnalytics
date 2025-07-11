@@ -18,6 +18,7 @@ export const getTopTenByModeSchema = {
                     rating: { type: "number" },
                     progress: { type: "number" },
                   },
+                  required: ["rating", "progress"],
                 },
               },
             },
@@ -26,6 +27,13 @@ export const getTopTenByModeSchema = {
         },
       },
       400: {
+        type: "object",
+        properties: {
+          error: { type: "string" },
+        },
+        required: ["error"],
+      },
+      500: {
         type: "object",
         properties: {
           error: { type: "string" },
