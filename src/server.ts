@@ -141,7 +141,7 @@ fastify.get(
       return;
     }
 
-    const userInfo = await userInfoResponse.json();
+    let userInfo = await userInfoResponse.json();
 
     if (!userInfo.username) {
       reply.code(400).send({
@@ -149,6 +149,13 @@ fastify.get(
       });
       return;
     }
+
+    userInfo = {
+      id: userInfo.id,
+      username: userInfo.username,
+      profile: userInfo.profile,
+      playTime: userInfo.playTime,
+    };
 
     const userPerformanceResponse = await fetch(
       `${lichessUserPerformanceUrl
@@ -173,7 +180,22 @@ fastify.get(
       return;
     }
 
-    const userPerformance = await userPerformanceResponse.json();
+    let userPerformance = await userPerformanceResponse.json();
+
+    let resultStreak = userPerformance.stat.resultStreak;
+
+    resultStreak = {
+      wins: { current: resultStreak.win.cur.v, max: resultStreak.win.max.v },
+      losses: {
+        current: resultStreak.loss.cur.v,
+        max: resultStreak.loss.max.v,
+      },
+    };
+
+    userPerformance = {
+      rank: userPerformance.rank,
+      resultStreak: resultStreak,
+    };
 
     const enrichedUser = {
       ...userInfo,
