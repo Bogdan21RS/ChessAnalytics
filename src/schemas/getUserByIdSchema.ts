@@ -44,8 +44,14 @@ export const getUserByIdSchema = {
         },
         required: ["id", "username"],
       },
-
       400: {
+        type: "object",
+        properties: {
+          error: { type: "string" },
+        },
+        required: ["error"],
+      },
+      404: {
         type: "object",
         properties: {
           error: { type: "string" },
