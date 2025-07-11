@@ -1,5 +1,7 @@
 import { FastifyRequest, FastifyReply } from "fastify";
 
+// TODO: Exporting functionalities into separate functions
+// TODO: Add missing code messages
 export default async function getUserById(
   request: FastifyRequest<{ Querystring: { id: string } }>,
   reply: FastifyReply

@@ -16,6 +16,8 @@ type modeType =
   | "racingKings"
   | "threeCheck";
 
+// TODO: Exporting functionalities into separate functions
+// TODO: Add missing code messages
 export default async function getEnrichedUser(
   request: FastifyRequest<{ Querystring: { id: string; mode: modeType } }>,
   reply: FastifyReply
