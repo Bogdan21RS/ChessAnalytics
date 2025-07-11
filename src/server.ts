@@ -74,12 +74,15 @@ fastify.get(
       return;
     }
 
-    const response = await fetch(`${lichessUserByIdUrl.replace("{id}", id)}`, {
-      method: "GET",
-    });
+    const userByIdResponse = await fetch(
+      `${lichessUserByIdUrl.replace("{id}", id)}`,
+      {
+        method: "GET",
+      }
+    );
 
-    if (!response.ok) {
-      if (response.status == 500) {
+    if (!userByIdResponse.ok) {
+      if (userByIdResponse.status == 500) {
         reply.code(500).send({
           error: ERROR_MESSAGES.INTERNAL_SERVER,
         });
@@ -91,9 +94,15 @@ fastify.get(
       return;
     }
 
-    const data = await response.json();
+    let userByIdInfo = await userByIdResponse.json();
 
-    reply.code(200).send(data);
+    userByIdInfo = {
+      id: userByIdInfo.id,
+      username: userByIdInfo.username,
+      modes: userByIdInfo.perfs,
+    };
+
+    reply.code(200).send(userByIdInfo);
   }
 );
 
