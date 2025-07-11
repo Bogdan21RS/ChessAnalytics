@@ -206,6 +206,7 @@ export default function itemRoutes(
   // Fourth endpoint
   const lichessRatingHistoryUrl =
     "https://lichess.org/api/user/{username}/rating-history";
+  const lichessTopTenByModeUrl = "https://lichess.org/api/player/top/10/{mode}";
   const ratingHistoryEndpointUrl = "/chess/topPlayerHistory";
 
   fastify.get(
@@ -230,9 +231,12 @@ export default function itemRoutes(
         return;
       }
 
-      const topTenResponse = await fetch(lichessTopTenUrl, {
-        method: "GET",
-      });
+      const topTenResponse = await fetch(
+        lichessTopTenByModeUrl.replace("{mode}", mode),
+        {
+          method: "GET",
+        }
+      );
 
       if (!topTenResponse.ok) {
         if (topTenResponse.status == 500) {
@@ -250,7 +254,7 @@ export default function itemRoutes(
 
       const topTen = await topTenResponse.json();
 
-      const selectedUsername = topTen[mode][top - 1].username;
+      const selectedUsername = topTen.users[top - 1].username;
 
       if (!selectedUsername) {
         reply.code(400).send({
