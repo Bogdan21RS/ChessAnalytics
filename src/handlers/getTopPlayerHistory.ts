@@ -24,6 +24,8 @@ export default async function getTopPlayerHistory(
     "https://lichess.org/api/user/{username}/rating-history";
   const lichessTopTenByModeUrl = "https://lichess.org/api/player/top/10/{mode}";
   const INVALID_TOP_OR_MODE = "Invalid or missing 'top' or 'mode' parameter.";
+  const MIN_TOP_POSITION = 1;
+  const MAX_TOP_POSITION = 200;
 
   const { top, mode } = request.query;
 
@@ -34,7 +36,7 @@ export default async function getTopPlayerHistory(
     return;
   }
 
-  if (top < 1 || top > 10) {
+  if (top < MIN_TOP_POSITION || top > MAX_TOP_POSITION) {
     reply.code(400).send({
       error: INVALID_TOP_OR_MODE,
     });
