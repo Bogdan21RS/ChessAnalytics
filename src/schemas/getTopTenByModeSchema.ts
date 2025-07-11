@@ -1,4 +1,5 @@
 import getTopTenByMode from "../handlers/getTopTenByMode";
+import { errorSchema } from "./generalSchemaObjects";
 
 export const getTopTenByModeSchema = {
   schema: {
@@ -28,20 +29,8 @@ export const getTopTenByModeSchema = {
           },
         },
       },
-      400: {
-        type: "object",
-        properties: {
-          error: { type: "string" },
-        },
-        required: ["error"],
-      },
-      500: {
-        type: "object",
-        properties: {
-          error: { type: "string" },
-        },
-        required: ["error"],
-      },
+      400: errorSchema,
+      500: errorSchema,
     },
   },
   handler: getTopTenByMode,

@@ -1,4 +1,5 @@
 import getUserById from "../handlers/getUserById";
+import { errorSchema } from "./generalSchemaObjects";
 
 export const getUserByIdSchema = {
   schema: {
@@ -44,27 +45,9 @@ export const getUserByIdSchema = {
         },
         required: ["id", "username"],
       },
-      400: {
-        type: "object",
-        properties: {
-          error: { type: "string" },
-        },
-        required: ["error"],
-      },
-      404: {
-        type: "object",
-        properties: {
-          error: { type: "string" },
-        },
-        required: ["error"],
-      },
-      500: {
-        type: "object",
-        properties: {
-          error: { type: "string" },
-        },
-        required: ["error"],
-      },
+      400: errorSchema,
+      404: errorSchema,
+      500: errorSchema,
     },
   },
   handler: getUserById,

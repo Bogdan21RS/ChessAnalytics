@@ -1,4 +1,5 @@
 import getTopPlayerHistory from "../handlers/getTopPlayerHistory";
+import { errorSchema } from "./generalSchemaObjects";
 
 export const getTopPlayerHistorySchema = {
   schema: {
@@ -19,20 +20,8 @@ export const getTopPlayerHistorySchema = {
           },
         },
       },
-      400: {
-        type: "object",
-        properties: {
-          error: { type: "string" },
-        },
-        required: ["error"],
-      },
-      500: {
-        type: "object",
-        properties: {
-          error: { type: "string" },
-        },
-        required: ["error"],
-      },
+      400: errorSchema,
+      500: errorSchema,
     },
   },
   handler: getTopPlayerHistory,
