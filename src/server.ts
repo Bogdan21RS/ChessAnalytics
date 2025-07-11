@@ -85,7 +85,7 @@ fastify.get(
   }
 );
 
-// TODO: Third endpont
+// Third endpont
 const lichessUserPerformanceUrl =
   "https://lichess.org/api/user/{username}/perf/{mode}";
 const enrichedUserEndpointUrl = "/chess/user/enriched";
@@ -159,8 +159,6 @@ fastify.get(
       }
     );
 
-    console.log(userPerformanceResponse);
-
     if (!userPerformanceResponse.ok) {
       if (userPerformanceResponse.status == 500) {
         reply.code(500).send({
@@ -186,11 +184,111 @@ fastify.get(
   }
 );
 
-// TODO: Fourth endpont
+// Fourth endpoint
+const lichessRatingHistoryUrl =
+  "https://lichess.org/api/user/{username}/rating-history";
+const ratingHistoryEndpointUrl = "/chess/topPlayerHistory";
+
+fastify.get(
+  ratingHistoryEndpointUrl,
+  async (
+    request: FastifyRequest<{ Querystring: { top: number; mode: perfType } }>,
+    reply
+  ) => {
+    const { top, mode } = request.query;
+
+    if (!top || !mode) {
+      reply.code(400).send({
+        error: ERROR_MESSAGES.INVALID_TOP_OR_MODE,
+      });
+      return;
+    }
+
+    if (top < 1 || top > 10) {
+      reply.code(400).send({
+        error: ERROR_MESSAGES.INVALID_TOP_OR_MODE,
+      });
+      return;
+    }
+
+    const topTenResponse = await fetch(lichessTopTenUrl, {
+      method: "GET",
+    });
+
+    if (!topTenResponse.ok) {
+      if (topTenResponse.status == 500) {
+        reply.code(500).send({
+          error: ERROR_MESSAGES.INTERNAL_SERVER,
+        });
+        return;
+      }
+
+      reply.code(400).send({
+        error: ERROR_MESSAGES.INVALID_TOP_OR_MODE,
+      });
+      return;
+    }
+
+    const topTen = await topTenResponse.json();
+
+    const selectedUsername = topTen[mode][top - 1].username;
+
+    if (!selectedUsername) {
+      reply.code(400).send({
+        error: ERROR_MESSAGES.INVALID_TOP_OR_MODE,
+      });
+      return;
+    }
+
+    const userRatingHistoryResponse = await fetch(
+      `${lichessRatingHistoryUrl.replace("{username}", selectedUsername)}`,
+      {
+        method: "GET",
+      }
+    );
+
+    if (!userRatingHistoryResponse.ok) {
+      if (userRatingHistoryResponse.status == 500) {
+        reply.code(500).send({
+          error: ERROR_MESSAGES.INTERNAL_SERVER,
+        });
+        return;
+      }
+
+      reply.code(400).send({
+        error: ERROR_MESSAGES.INVALID_TOP_OR_MODE,
+      });
+      return;
+    }
+
+    let userRatingHistory = await userRatingHistoryResponse.json();
+
+    userRatingHistory = userRatingHistory.filter(
+      (modeRating: { name: perfType; points: Array<Array<number>> }) => {
+        return modeRating.name.toLowerCase() === mode;
+      }
+    );
+
+    userRatingHistory = userRatingHistory[0].points.map(
+      (modeRating: Array<number>) => {
+        return {
+          date: `${modeRating[0]}-${modeRating[1]}-${modeRating[2]}`,
+          rating: modeRating[3],
+        };
+      }
+    );
+
+    reply.code(200).send({
+      username: selectedUsername,
+      history: userRatingHistory,
+    });
+  }
+);
 
 const ERROR_MESSAGES = {
   INVALID_ID: "Invalid or missing 'id' parameter.",
   INVALID_ID_OR_MODE: "Invalid or missing 'id' or 'mode' parameter.",
+  INVALID_TOP_OR_MODE: "Invalid or missing 'top' or 'mode' parameter.",
   INTERNAL_SERVER: "Internal server error.",
 };
 
