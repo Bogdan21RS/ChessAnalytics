@@ -1,8 +1,14 @@
 import { FastifyInstance, FastifyPluginOptions } from "fastify";
+
 import getTopTenByMode from "../handlers/getTopTenByMode";
 import getUserById from "../handlers/getUserById";
 import getEnrichedUser from "../handlers/getEnrichedUser";
 import getTopPlayerHistory from "../handlers/getTopPlayerHistory";
+
+import { getTopTenByModeSchema } from "../schemas/getTopTenByModeSchema";
+import { getUserByIdSchema } from "../schemas/getUserByIdSchema";
+import { getEnrichedUserSchema } from "../schemas/getEnrichedUserSchema";
+import { getTopPlayerHistorySchema } from "../schemas/getTopPlayerHistorySchema";
 
 export default function itemRoutes(
   fastify: FastifyInstance,
@@ -11,22 +17,26 @@ export default function itemRoutes(
 ) {
   // First endpoint
   const topTenEndpointUrl = "/chess/top10";
-  fastify.get(topTenEndpointUrl, getTopTenByMode);
+  fastify.get(topTenEndpointUrl, getTopTenByModeSchema, getTopTenByMode);
 
   // Second endpont
   const userByIdEndpointUrl = "/chess/user";
 
-  fastify.get(userByIdEndpointUrl, getUserById);
+  fastify.get(userByIdEndpointUrl, getUserByIdSchema, getUserById);
 
   // Third endpont
   const enrichedUserEndpointUrl = "/chess/user/enriched";
 
-  fastify.get(enrichedUserEndpointUrl, getEnrichedUser);
+  fastify.get(enrichedUserEndpointUrl, getEnrichedUserSchema, getEnrichedUser);
 
   // Fourth endpoint
   const ratingHistoryEndpointUrl = "/chess/topPlayerHistory";
 
-  fastify.get(ratingHistoryEndpointUrl, getTopPlayerHistory);
+  fastify.get(
+    ratingHistoryEndpointUrl,
+    getTopPlayerHistorySchema,
+    getTopPlayerHistory
+  );
 
   done();
 }
