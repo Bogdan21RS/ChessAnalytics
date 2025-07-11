@@ -41,9 +41,21 @@ const lichessTopTenUrl = "https://lichess.org/api/player";
 const topTenEndpointUrl = "/chess/top10";
 
 fastify.get(topTenEndpointUrl, async (request, reply) => {
-  const response = await fetch(lichessTopTenUrl);
-  const data = await response.json();
-  reply.code(200).send(data);
+  const topTenResponse = await fetch(lichessTopTenUrl);
+  let topTenInfo = await topTenResponse.json();
+
+  for (const mode in topTenInfo) {
+    if (Array.isArray(topTenInfo[mode])) {
+      topTenInfo[mode] = topTenInfo[mode].map(
+        ({ perfs, ...rest }: { perfs: Object; rest: Object }) => ({
+          ...rest,
+          modes: perfs,
+        })
+      );
+    }
+  }
+
+  reply.code(200).send(topTenInfo);
 });
 
 // Second endpont
@@ -89,7 +101,7 @@ fastify.get(
 const lichessUserPerformanceUrl =
   "https://lichess.org/api/user/{username}/perf/{mode}";
 const enrichedUserEndpointUrl = "/chess/user/enriched";
-type perfType =
+type modeType =
   | "ultraBullet"
   | "bullet"
   | "blitz"
@@ -108,7 +120,7 @@ type perfType =
 fastify.get(
   enrichedUserEndpointUrl,
   async (
-    request: FastifyRequest<{ Querystring: { id: string; mode: perfType } }>,
+    request: FastifyRequest<{ Querystring: { id: string; mode: modeType } }>,
     reply
   ) => {
     const { id, mode } = request.query;
@@ -214,7 +226,7 @@ const ratingHistoryEndpointUrl = "/chess/topPlayerHistory";
 fastify.get(
   ratingHistoryEndpointUrl,
   async (
-    request: FastifyRequest<{ Querystring: { top: number; mode: perfType } }>,
+    request: FastifyRequest<{ Querystring: { top: number; mode: modeType } }>,
     reply
   ) => {
     const { top, mode } = request.query;
@@ -286,7 +298,7 @@ fastify.get(
     let userRatingHistory = await userRatingHistoryResponse.json();
 
     userRatingHistory = userRatingHistory.filter(
-      (modeRating: { name: perfType; points: Array<Array<number>> }) => {
+      (modeRating: { name: modeType; points: Array<Array<number>> }) => {
         return modeRating.name.toLowerCase() === mode;
       }
     );
