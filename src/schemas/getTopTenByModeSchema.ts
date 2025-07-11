@@ -1,3 +1,5 @@
+import getTopTenByMode from "../handlers/getTopTenByMode";
+
 export const getTopTenByModeSchema = {
   schema: {
     response: {
@@ -42,4 +44,5 @@ export const getTopTenByModeSchema = {
       },
     },
   },
+  handler: getTopTenByMode,
 };

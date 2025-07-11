@@ -1,3 +1,5 @@
+import getEnrichedUser from "../handlers/getEnrichedUser";
+
 export const getEnrichedUserSchema = {
   schema: {
     response: {
@@ -59,4 +61,5 @@ export const getEnrichedUserSchema = {
       },
     },
   },
+  handler: getEnrichedUser,
 };

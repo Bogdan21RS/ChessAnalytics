@@ -17,26 +17,22 @@ export default function itemRoutes(
 ) {
   // First endpoint
   const topTenEndpointUrl = "/chess/top10";
-  fastify.get(topTenEndpointUrl, getTopTenByModeSchema, getTopTenByMode);
+  fastify.get(topTenEndpointUrl, getTopTenByModeSchema);
 
   // Second endpont
   const userByIdEndpointUrl = "/chess/user";
 
-  fastify.get(userByIdEndpointUrl, getUserByIdSchema, getUserById);
+  fastify.get(userByIdEndpointUrl, getUserByIdSchema);
 
   // Third endpont
   const enrichedUserEndpointUrl = "/chess/user/enriched";
 
-  fastify.get(enrichedUserEndpointUrl, getEnrichedUserSchema, getEnrichedUser);
+  fastify.get(enrichedUserEndpointUrl, getEnrichedUserSchema);
 
   // Fourth endpoint
   const ratingHistoryEndpointUrl = "/chess/topPlayerHistory";
 
-  fastify.get(
-    ratingHistoryEndpointUrl,
-    getTopPlayerHistorySchema,
-    getTopPlayerHistory
-  );
+  fastify.get(ratingHistoryEndpointUrl, getTopPlayerHistorySchema);
 
   done();
 }

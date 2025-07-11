@@ -1,4 +1,4 @@
-import { profile } from "console";
+import getUserById from "../handlers/getUserById";
 
 export const getUserByIdSchema = {
   schema: {
@@ -67,4 +67,5 @@ export const getUserByIdSchema = {
       },
     },
   },
+  handler: getUserById,
 };

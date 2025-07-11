@@ -1,3 +1,5 @@
+import getTopPlayerHistory from "../handlers/getTopPlayerHistory";
+
 export const getTopPlayerHistorySchema = {
   schema: {
     response: {
@@ -33,4 +35,5 @@ export const getTopPlayerHistorySchema = {
       },
     },
   },
+  handler: getTopPlayerHistory,
 };
