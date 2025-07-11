@@ -1,10 +1,5 @@
 import { FastifyInstance, FastifyPluginOptions } from "fastify";
 
-import getTopTenByMode from "../handlers/getTopTenByMode";
-import getUserById from "../handlers/getUserById";
-import getEnrichedUser from "../handlers/getEnrichedUser";
-import getTopPlayerHistory from "../handlers/getTopPlayerHistory";
-
 import { getTopTenByModeSchema } from "../schemas/getTopTenByModeSchema";
 import { getUserByIdSchema } from "../schemas/getUserByIdSchema";
 import { getEnrichedUserSchema } from "../schemas/getEnrichedUserSchema";

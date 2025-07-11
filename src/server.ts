@@ -1,5 +1,5 @@
 import Fastify from "fastify";
-import type { FastifyInstance, FastifyRequest } from "fastify";
+import type { FastifyInstance } from "fastify";
 import swagger from "@fastify/swagger";
 import swaggerUI from "@fastify/swagger-ui";
 import itemRoutes from "./routes/routes";
