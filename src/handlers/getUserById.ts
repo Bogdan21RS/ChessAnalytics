@@ -24,14 +24,14 @@ export default async function getUserById(
   );
 
   if (!userByIdResponse.ok) {
-    if (userByIdResponse.status == 500) {
+    if (userByIdResponse.status === 500) {
       reply.code(500).send({
         error: userByIdResponse.statusText,
       });
       return;
     }
-    reply.code(400).send({
-      error: INVALID_ID,
+    reply.code(404).send({
+      error: userByIdResponse.statusText,
     });
     return;
   }
@@ -42,6 +42,13 @@ export default async function getUserById(
     id: userByIdInfo.id,
     username: userByIdInfo.username,
     modes: userByIdInfo.perfs,
+    flair: userByIdInfo.flair,
+    patron: userByIdInfo.patron,
+    verified: userByIdInfo.verified,
+    createdAt: userByIdInfo.createdAt,
+    profile: userByIdInfo.profile,
+    seenAt: userByIdInfo.seenAt,
+    playTime: userByIdInfo.playTime,
   };
 
   reply.code(200).send(userByIdInfo);
