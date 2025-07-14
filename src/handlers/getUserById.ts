@@ -1,8 +1,6 @@
 import { FastifyRequest, FastifyReply } from "fastify";
 import { responseMessages } from "./codeResponseMessages";
 
-// TODO: Exporting functionalities into separate functions
-
 export default async function getUserById(
   request: FastifyRequest<{ Querystring: { id: string } }>,
   reply: FastifyReply

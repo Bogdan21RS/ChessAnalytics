@@ -110,7 +110,10 @@ export default async function getTopPlayerHistory(
 }
 
 function getUserRatingHistoryBySpecification(
-  userRatingHistoryInfo: any,
+  userRatingHistoryInfo: Array<{
+    name: modeType;
+    points: Array<Array<number>>;
+  }>,
   mode: string,
   selectedUsername: string
 ) {

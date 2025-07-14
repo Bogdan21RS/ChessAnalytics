@@ -96,7 +96,12 @@ export default async function getEnrichedUser(
     .send(getEnrichedUserBySpecification(userPerformance, userInfo));
 }
 
-function getUserInfoBySpecification(userInfo: any) {
+function getUserInfoBySpecification(userInfo: {
+  id: string;
+  username: string;
+  profile: Object;
+  playTime: Object;
+}) {
   userInfo = {
     id: userInfo.id,
     username: userInfo.username,
