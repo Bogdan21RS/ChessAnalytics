@@ -17,7 +17,6 @@ type modeType =
   | "racingKings"
   | "threeCheck";
 
-// TODO: Exporting functionalities into separate functions
 export default async function getTopPlayerHistory(
   request: FastifyRequest<{ Querystring: { top: number; mode: modeType } }>,
   reply: FastifyReply
@@ -26,19 +25,18 @@ export default async function getTopPlayerHistory(
     "https://lichess.org/api/user/{username}/rating-history";
   const lichessTopTenByModeUrl = "https://lichess.org/api/player/top/10/{mode}";
   const INVALID_TOP_OR_MODE = "Invalid or missing 'top' or 'mode' parameter.";
-  const MIN_TOP_POSITION = 1;
-  const MAX_TOP_POSITION = 200;
+  const USER_NOT_FOUND = "User not found.";
 
   const { top, mode } = request.query;
 
-  if (!top || !mode) {
+  if (missingTopOrModeParameters(top, mode)) {
     reply.code(400).send({
       error: INVALID_TOP_OR_MODE,
     });
     return;
   }
 
-  if (top < MIN_TOP_POSITION || top > MAX_TOP_POSITION) {
+  if (invalidTopParameter(top)) {
     reply.code(400).send({
       error: INVALID_TOP_OR_MODE,
     });
@@ -52,8 +50,8 @@ export default async function getTopPlayerHistory(
     }
   );
 
-  if (!topTenResponse.ok) {
-    if (topTenResponse.status == 500) {
+  if (failedResponse(topTenResponse)) {
+    if (serverError(topTenResponse)) {
       reply.code(500).send({
         error: responseMessages.SERVER_ERROR,
       });
@@ -66,13 +64,13 @@ export default async function getTopPlayerHistory(
     return;
   }
 
-  const topTen = await topTenResponse.json();
+  const topTenInfo = await topTenResponse.json();
 
-  const selectedUsername = topTen.users[top - 1].username;
+  const selectedUsername = getUsernameFromTopTenInfo(topTenInfo, top);
 
-  if (!selectedUsername) {
-    reply.code(400).send({
-      error: INVALID_TOP_OR_MODE,
+  if (usernameDoesNotExist(selectedUsername)) {
+    reply.code(404).send({
+      error: USER_NOT_FOUND,
     });
     return;
   }
@@ -84,8 +82,8 @@ export default async function getTopPlayerHistory(
     }
   );
 
-  if (!userRatingHistoryResponse.ok) {
-    if (userRatingHistoryResponse.status == 500) {
+  if (failedResponse(userRatingHistoryResponse)) {
+    if (serverError(userRatingHistoryResponse)) {
       reply.code(500).send({
         error: responseMessages.SERVER_ERROR,
       });
@@ -98,25 +96,70 @@ export default async function getTopPlayerHistory(
     return;
   }
 
-  let userRatingHistory = await userRatingHistoryResponse.json();
+  const userRatingHistoryInfo = await userRatingHistoryResponse.json();
 
-  userRatingHistory = userRatingHistory.filter(
+  reply
+    .code(200)
+    .send(
+      getUserRatingHistoryBySpecification(
+        userRatingHistoryInfo,
+        mode,
+        selectedUsername
+      )
+    );
+}
+
+function getUserRatingHistoryBySpecification(
+  userRatingHistoryInfo: any,
+  mode: string,
+  selectedUsername: string
+) {
+  const filteredUserRatingHistoryInfo = userRatingHistoryInfo.filter(
     (modeRating: { name: modeType; points: Array<Array<number>> }) => {
       return modeRating.name.toLowerCase() === mode;
     }
   );
 
-  userRatingHistory = userRatingHistory[0].points.map(
-    (modeRating: Array<number>) => {
+  const mappedUserRatingHistoryInfo =
+    filteredUserRatingHistoryInfo[0].points.map((modeRating: Array<number>) => {
       return {
         date: `${modeRating[0]}-${modeRating[1]}-${modeRating[2]}`,
         rating: modeRating[3],
       };
-    }
-  );
+    });
 
-  reply.code(200).send({
+  return {
     username: selectedUsername,
-    history: userRatingHistory,
-  });
+    history: mappedUserRatingHistoryInfo,
+  };
+}
+
+function usernameDoesNotExist(selectedUsername: string | undefined) {
+  return !selectedUsername;
+}
+
+function getUsernameFromTopTenInfo(
+  topTen: { users: Array<{ username: string }> },
+  top: number
+) {
+  return topTen.users[top - 1].username;
+}
+
+function invalidTopParameter(top: number) {
+  const MIN_TOP_POSITION = 1;
+  const MAX_TOP_POSITION = 200;
+
+  return top < MIN_TOP_POSITION || top > MAX_TOP_POSITION;
+}
+
+function missingTopOrModeParameters(top: number, mode: string) {
+  return !top || !mode;
+}
+
+function failedResponse(topTenResponse: Response) {
+  return !topTenResponse.ok;
+}
+
+function serverError(topTenResponse: Response) {
+  return topTenResponse.status == 500;
 }
