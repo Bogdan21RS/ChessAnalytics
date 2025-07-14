@@ -2,6 +2,7 @@ import { FastifyRequest, FastifyReply } from "fastify";
 import { responseMessages } from "./codeResponseMessages";
 
 // TODO: Exporting functionalities into separate functions
+
 export default async function getUserById(
   request: FastifyRequest<{ Querystring: { id: string } }>,
   reply: FastifyReply
@@ -12,7 +13,7 @@ export default async function getUserById(
 
   const { id } = request.query;
 
-  if (!id) {
+  if (queryDoesNotHaveId(id)) {
     reply.code(400).send({
       error: INVALID_ID,
     });
@@ -26,8 +27,8 @@ export default async function getUserById(
     }
   );
 
-  if (!userByIdResponse.ok) {
-    if (userByIdResponse.status === 500) {
+  if (failedResponse(userByIdResponse)) {
+    if (serverError(userByIdResponse)) {
       reply.code(500).send({
         error: responseMessages.SERVER_ERROR,
       });
@@ -39,9 +40,27 @@ export default async function getUserById(
     return;
   }
 
-  let userByIdInfo = await userByIdResponse.json();
+  const userByIdInfo = await userByIdResponse.json();
 
-  userByIdInfo = {
+  reply.code(200).send(getUserByIdBySpecification(userByIdInfo));
+}
+
+function failedResponse(userByIdResponse: Response) {
+  return !userByIdResponse.ok;
+}
+
+function serverError(userByIdResponse: Response) {
+  return userByIdResponse.status === 500;
+}
+
+function queryDoesNotHaveId(id: string | undefined) {
+  return !id;
+}
+
+function getUserByIdBySpecification(userByIdInfo: {
+  [property: string]: Object;
+}) {
+  return {
     id: userByIdInfo.id,
     username: userByIdInfo.username,
     modes: userByIdInfo.perfs,
@@ -53,6 +72,4 @@ export default async function getUserById(
     seenAt: userByIdInfo.seenAt,
     playTime: userByIdInfo.playTime,
   };
-
-  reply.code(200).send(userByIdInfo);
 }
