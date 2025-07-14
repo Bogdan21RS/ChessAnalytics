@@ -9,7 +9,7 @@ export default async function getTopTenByMode(
 
   const topTenResponse = await fetch(lichessTopTenUrl);
 
-  if (!topTenResponse.ok) {
+  if (failedResponse(topTenResponse)) {
     reply.code(500).send({
       error: responseMessages.SERVER_ERROR,
     });
@@ -20,6 +20,10 @@ export default async function getTopTenByMode(
 
   modifyTopTenInfoToSpecification(topTenInfo);
   reply.code(200).send(topTenInfo);
+}
+
+function failedResponse(topTenResponse: Response) {
+  return !topTenResponse.ok;
 }
 
 function modifyTopTenInfoToSpecification(topTenInfo: {
