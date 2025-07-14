@@ -1,4 +1,5 @@
 import { FastifyRequest, FastifyReply } from "fastify";
+import { responseMessages } from "./codeResponseMessages";
 
 type modeType =
   | "ultraBullet"
@@ -17,7 +18,6 @@ type modeType =
   | "threeCheck";
 
 // TODO: Exporting functionalities into separate functions
-// TODO: Add missing code messages
 export default async function getEnrichedUser(
   request: FastifyRequest<{ Querystring: { id: string; mode: modeType } }>,
   reply: FastifyReply
@@ -45,7 +45,7 @@ export default async function getEnrichedUser(
   if (!userInfoResponse.ok) {
     if (userInfoResponse.status == 500) {
       reply.code(500).send({
-        error: userInfoResponse.statusText,
+        error: responseMessages.SERVER_ERROR,
       });
       return;
     }
@@ -84,7 +84,7 @@ export default async function getEnrichedUser(
   if (!userPerformanceResponse.ok) {
     if (userPerformanceResponse.status == 500) {
       reply.code(500).send({
-        error: userPerformanceResponse.statusText,
+        error: responseMessages.SERVER_ERROR,
       });
       return;
     }

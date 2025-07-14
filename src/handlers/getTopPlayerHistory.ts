@@ -1,4 +1,5 @@
 import { FastifyRequest, FastifyReply } from "fastify";
+import { responseMessages } from "./codeResponseMessages";
 
 type modeType =
   | "ultraBullet"
@@ -17,7 +18,6 @@ type modeType =
   | "threeCheck";
 
 // TODO: Exporting functionalities into separate functions
-// TODO: Add missing code messages
 export default async function getTopPlayerHistory(
   request: FastifyRequest<{ Querystring: { top: number; mode: modeType } }>,
   reply: FastifyReply
@@ -55,7 +55,7 @@ export default async function getTopPlayerHistory(
   if (!topTenResponse.ok) {
     if (topTenResponse.status == 500) {
       reply.code(500).send({
-        error: topTenResponse.statusText,
+        error: responseMessages.SERVER_ERROR,
       });
       return;
     }
@@ -87,7 +87,7 @@ export default async function getTopPlayerHistory(
   if (!userRatingHistoryResponse.ok) {
     if (userRatingHistoryResponse.status == 500) {
       reply.code(500).send({
-        error: userRatingHistoryResponse.statusText,
+        error: responseMessages.SERVER_ERROR,
       });
       return;
     }

@@ -1,12 +1,13 @@
 import { FastifyRequest, FastifyReply } from "fastify";
+import { responseMessages } from "./codeResponseMessages";
 
 // TODO: Exporting functionalities into separate functions
-// TODO: Add missing code messages
 export default async function getUserById(
   request: FastifyRequest<{ Querystring: { id: string } }>,
   reply: FastifyReply
 ) {
   const INVALID_ID = "Invalid or missing 'id' parameter.";
+  const USER_NOT_FOUND = "User not found.";
   const lichessUserByIdUrl = "https://lichess.org/api/user/{id}";
 
   const { id } = request.query;
@@ -28,12 +29,12 @@ export default async function getUserById(
   if (!userByIdResponse.ok) {
     if (userByIdResponse.status === 500) {
       reply.code(500).send({
-        error: userByIdResponse.statusText,
+        error: responseMessages.SERVER_ERROR,
       });
       return;
     }
     reply.code(404).send({
-      error: userByIdResponse.statusText,
+      error: USER_NOT_FOUND,
     });
     return;
   }

@@ -1,7 +1,7 @@
 import { FastifyRequest, FastifyReply } from "fastify";
+import { responseMessages } from "./codeResponseMessages";
 
 // TODO: Exporting functionalities into separate functions
-// TODO: Add missing code messages
 export default async function getTopTenByMode(
   request: FastifyRequest,
   reply: FastifyReply
@@ -12,7 +12,7 @@ export default async function getTopTenByMode(
 
   if (!topTenResponse.ok) {
     reply.code(500).send({
-      error: topTenResponse.statusText,
+      error: responseMessages.SERVER_ERROR,
     });
     return;
   }
