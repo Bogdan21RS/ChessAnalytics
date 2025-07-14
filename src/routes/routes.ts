@@ -10,23 +10,16 @@ export default function itemRoutes(
   options: FastifyPluginOptions,
   done: (err?: Error) => void
 ) {
-  // First endpoint
   const topTenEndpointUrl = "/chess/top10";
   fastify.get(topTenEndpointUrl, getTopTenByModeSchema);
 
-  // Second endpont
   const userByIdEndpointUrl = "/chess/user";
-
   fastify.get(userByIdEndpointUrl, getUserByIdSchema);
 
-  // Third endpont
   const enrichedUserEndpointUrl = "/chess/user/enriched";
-
   fastify.get(enrichedUserEndpointUrl, getEnrichedUserSchema);
 
-  // Fourth endpoint
   const ratingHistoryEndpointUrl = "/chess/topPlayerHistory";
-
   fastify.get(ratingHistoryEndpointUrl, getTopPlayerHistorySchema);
 
   done();
