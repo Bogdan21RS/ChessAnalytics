@@ -29,4 +29,23 @@ describe("get user by id endpoint end to end tests", () => {
     expect(data).toHaveProperty("username");
     expect(data).toHaveProperty("modes");
   });
+
+  it("returns 404 if the user does not exist", async () => {
+    const response = await server.inject({
+      method: "GET",
+      url: userByIdEndpointUrl,
+      query: {
+        id: "nonExistentIdThatWillNotBeFound",
+      },
+    });
+
+    expect(response.statusCode).toBe(404);
+    const body =
+      typeof response.body === "string"
+        ? JSON.parse(response.body)
+        : response.body;
+    expect(body).toStrictEqual({
+      error: "User not found.",
+    });
+  });
 });
