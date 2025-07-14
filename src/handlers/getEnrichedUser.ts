@@ -127,7 +127,12 @@ function getEnrichedUserBySpecification(
     };
     rank: number;
   },
-  userInfo: any
+  userInfo: {
+    id: string;
+    username: string;
+    profile: Object;
+    playTime: Object;
+  }
 ) {
   const resultStreak = userPerformance.stat.resultStreak;
 
