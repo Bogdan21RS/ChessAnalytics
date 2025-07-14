@@ -1,7 +1,6 @@
 import { FastifyRequest, FastifyReply } from "fastify";
 import { responseMessages } from "./codeResponseMessages";
 
-// TODO: Exporting functionalities into separate functions
 export default async function getTopTenByMode(
   request: FastifyRequest,
   reply: FastifyReply
@@ -17,8 +16,15 @@ export default async function getTopTenByMode(
     return;
   }
 
-  let topTenInfo = await topTenResponse.json();
+  const topTenInfo = await topTenResponse.json();
 
+  modifyTopTenInfoToSpecification(topTenInfo);
+  reply.code(200).send(topTenInfo);
+}
+
+function modifyTopTenInfoToSpecification(topTenInfo: {
+  [module: string]: Object;
+}) {
   for (const mode in topTenInfo) {
     if (Array.isArray(topTenInfo[mode])) {
       topTenInfo[mode] = topTenInfo[mode].map(
@@ -29,6 +35,4 @@ export default async function getTopTenByMode(
       );
     }
   }
-
-  reply.code(200).send(topTenInfo);
 }
