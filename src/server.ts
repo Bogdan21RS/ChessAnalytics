@@ -1,26 +1,6 @@
-import Fastify from "fastify";
-import type { FastifyInstance } from "fastify";
-import swagger from "@fastify/swagger";
-import swaggerUI from "@fastify/swagger-ui";
-import itemRoutes from "./routes/routes";
+import { build } from "./serverBuild";
 
-const fastify: FastifyInstance = Fastify({
-  logger: {
-    transport: {
-      target: "pino-pretty",
-      options: {
-        colorize: true,
-        translateTime: "SYS:standard",
-        ignore: "pid,hostname",
-      },
-    },
-  },
-});
-
-configureSwagger(fastify);
-
-fastify.register(itemRoutes);
-
+const fastify = build();
 const PORT = 5000;
 
 const start = async () => {
@@ -33,23 +13,3 @@ const start = async () => {
 };
 
 start();
-
-function configureSwagger(fastify: FastifyInstance): void {
-  fastify.register(swagger, {
-    swagger: {
-      info: {
-        title: "fastify-api",
-        description: "API documentation",
-        version: "1.0.0",
-      },
-    },
-  });
-
-  fastify.register(swaggerUI, {
-    routePrefix: "/docs",
-    uiConfig: {
-      docExpansion: "full",
-      deepLinking: false,
-    },
-  });
-}
