@@ -17,25 +17,7 @@ const fastify: FastifyInstance = Fastify({
   },
 });
 
-// Register Swagger (core)
-fastify.register(swagger, {
-  swagger: {
-    info: {
-      title: "fastify-api",
-      description: "API documentation",
-      version: "1.0.0",
-    },
-  },
-});
-
-// Register Swagger UI (exposes the docs at /docs)
-fastify.register(swaggerUI, {
-  routePrefix: "/docs",
-  uiConfig: {
-    docExpansion: "full",
-    deepLinking: false,
-  },
-});
+configureSwagger(fastify);
 
 fastify.register(itemRoutes);
 
@@ -51,3 +33,23 @@ const start = async () => {
 };
 
 start();
+
+function configureSwagger(fastify: FastifyInstance): void {
+  fastify.register(swagger, {
+    swagger: {
+      info: {
+        title: "fastify-api",
+        description: "API documentation",
+        version: "1.0.0",
+      },
+    },
+  });
+
+  fastify.register(swaggerUI, {
+    routePrefix: "/docs",
+    uiConfig: {
+      docExpansion: "full",
+      deepLinking: false,
+    },
+  });
+}
