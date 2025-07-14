@@ -17,7 +17,6 @@ type modeType =
   | "racingKings"
   | "threeCheck";
 
-// TODO: Exporting functionalities into separate functions
 export default async function getEnrichedUser(
   request: FastifyRequest<{ Querystring: { id: string; mode: modeType } }>,
   reply: FastifyReply
@@ -28,7 +27,7 @@ export default async function getEnrichedUser(
   const lichessUserPerformanceUrl =
     "https://lichess.org/api/user/{username}/perf/{mode}";
 
-  if (!id || !mode) {
+  if (missingIdOrModeParameters(id, mode)) {
     reply.code(400).send({
       error: INVALID_TOP_OR_MODE,
     });
@@ -42,8 +41,8 @@ export default async function getEnrichedUser(
     }
   );
 
-  if (!userInfoResponse.ok) {
-    if (userInfoResponse.status == 500) {
+  if (failedResponse(userInfoResponse)) {
+    if (serverError(userInfoResponse)) {
       reply.code(500).send({
         error: responseMessages.SERVER_ERROR,
       });
@@ -56,21 +55,16 @@ export default async function getEnrichedUser(
     return;
   }
 
-  let userInfo = await userInfoResponse.json();
+  const returnedUserInfo = await userInfoResponse.json();
 
-  if (!userInfo.username) {
+  if (userInfoDoesNotHaveValidUsername(returnedUserInfo)) {
     reply.code(400).send({
       error: INVALID_TOP_OR_MODE,
     });
     return;
   }
 
-  userInfo = {
-    id: userInfo.id,
-    username: userInfo.username,
-    profile: userInfo.profile,
-    playTime: userInfo.playTime,
-  };
+  const userInfo = getUserInfoBySpecification(returnedUserInfo);
 
   const userPerformanceResponse = await fetch(
     `${lichessUserPerformanceUrl
@@ -81,8 +75,8 @@ export default async function getEnrichedUser(
     }
   );
 
-  if (!userPerformanceResponse.ok) {
-    if (userPerformanceResponse.status == 500) {
+  if (failedResponse(userPerformanceResponse)) {
+    if (serverError(userPerformanceResponse)) {
       reply.code(500).send({
         error: responseMessages.SERVER_ERROR,
       });
@@ -95,11 +89,44 @@ export default async function getEnrichedUser(
     return;
   }
 
-  let userPerformance = await userPerformanceResponse.json();
+  const userPerformance = await userPerformanceResponse.json();
 
-  let resultStreak = userPerformance.stat.resultStreak;
+  reply
+    .code(200)
+    .send(getEnrichedUserBySpecification(userPerformance, userInfo));
+}
 
-  resultStreak = {
+function getUserInfoBySpecification(userInfo: any) {
+  userInfo = {
+    id: userInfo.id,
+    username: userInfo.username,
+    profile: userInfo.profile,
+    playTime: userInfo.playTime,
+  };
+  return userInfo;
+}
+
+function userInfoDoesNotHaveValidUsername(userInfo: {
+  username: string | undefined;
+}) {
+  return !userInfo.username;
+}
+
+function getEnrichedUserBySpecification(
+  userPerformance: {
+    stat: {
+      resultStreak: {
+        win: { cur: { v: number }; max: { v: number } };
+        loss: { cur: { v: number }; max: { v: number } };
+      };
+    };
+    rank: number;
+  },
+  userInfo: any
+) {
+  const resultStreak = userPerformance.stat.resultStreak;
+
+  const modifiedResultStreak = {
     wins: { current: resultStreak.win.cur.v, max: resultStreak.win.max.v },
     losses: {
       current: resultStreak.loss.cur.v,
@@ -107,15 +134,29 @@ export default async function getEnrichedUser(
     },
   };
 
-  userPerformance = {
+  const modifiedUserPerformance = {
     rank: userPerformance.rank,
-    resultStreak: resultStreak,
+    resultStreak: modifiedResultStreak,
   };
 
   const enrichedUser = {
     ...userInfo,
-    ...userPerformance,
+    ...modifiedUserPerformance,
   };
+  return enrichedUser;
+}
 
-  reply.code(200).send(enrichedUser);
+function failedResponse(userInfoResponse: Response) {
+  return !userInfoResponse.ok;
+}
+
+function serverError(userInfoResponse: Response) {
+  return userInfoResponse.status === 500;
+}
+
+function missingIdOrModeParameters(
+  id: string | undefined,
+  mode: string | undefined
+) {
+  return !id || !mode;
 }
