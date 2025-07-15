@@ -1,0 +1,15 @@
+export type modeType =
+  | "ultraBullet"
+  | "bullet"
+  | "blitz"
+  | "rapid"
+  | "classical"
+  | "correspondence"
+  | "chess960"
+  | "crazyhouse"
+  | "antichess"
+  | "atomic"
+  | "horde"
+  | "kingOfTheHill"
+  | "racingKings"
+  | "threeCheck";

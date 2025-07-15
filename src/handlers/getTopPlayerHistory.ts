@@ -1,29 +1,13 @@
 import { FastifyRequest, FastifyReply } from "fastify";
 import { generalResponseMessages } from "./codeResponseMessages";
-
-type modeType =
-  | "ultraBullet"
-  | "bullet"
-  | "blitz"
-  | "rapid"
-  | "classical"
-  | "correspondence"
-  | "chess960"
-  | "crazyhouse"
-  | "antichess"
-  | "atomic"
-  | "horde"
-  | "kingOfTheHill"
-  | "racingKings"
-  | "threeCheck";
+import { modeType } from "../schemas/generalTypes";
 
 export default async function getTopPlayerHistory(
   request: FastifyRequest<{ Querystring: { top: number; mode: modeType } }>,
-  reply: FastifyReply
+  reply: FastifyReply,
+  lichessTopTenFromModeUrl: string,
+  lichessRatingHistoryUrl: string
 ) {
-  const lichessRatingHistoryUrl =
-    "https://lichess.org/api/user/{username}/rating-history";
-  const lichessTopTenByModeUrl = "https://lichess.org/api/player/top/10/{mode}";
   const INVALID_TOP_OR_MODE = "Invalid or missing 'top' or 'mode' parameter.";
   const USER_NOT_FOUND = "User not found.";
 
@@ -44,7 +28,7 @@ export default async function getTopPlayerHistory(
   }
 
   const topTenResponse = await fetch(
-    lichessTopTenByModeUrl.replace("{mode}", mode),
+    lichessTopTenFromModeUrl.replace("{mode}", mode),
     {
       method: "GET",
     }

@@ -3,11 +3,11 @@ import { generalResponseMessages } from "./codeResponseMessages";
 
 export default async function getUserById(
   request: FastifyRequest<{ Querystring: { id: string } }>,
-  reply: FastifyReply
+  reply: FastifyReply,
+  lichessUserByIdUrl: string
 ) {
   const INVALID_ID = "Invalid or missing 'id' parameter.";
   const USER_NOT_FOUND = "User not found.";
-  const lichessUserByIdUrl = "https://lichess.org/api/user/{id}";
 
   const { id } = request.query;
 

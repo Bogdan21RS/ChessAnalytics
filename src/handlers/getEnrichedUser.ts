@@ -1,32 +1,16 @@
 import { FastifyRequest, FastifyReply } from "fastify";
 import { generalResponseMessages } from "./codeResponseMessages";
-
-type modeType =
-  | "ultraBullet"
-  | "bullet"
-  | "blitz"
-  | "rapid"
-  | "classical"
-  | "correspondence"
-  | "chess960"
-  | "crazyhouse"
-  | "antichess"
-  | "atomic"
-  | "horde"
-  | "kingOfTheHill"
-  | "racingKings"
-  | "threeCheck";
+import { modeType } from "../schemas/generalTypes";
 
 export default async function getEnrichedUser(
   request: FastifyRequest<{ Querystring: { id: string; mode: modeType } }>,
-  reply: FastifyReply
+  reply: FastifyReply,
+  lichessUserByIdUrl: string,
+  lichessUserPerformanceUrl: string
 ) {
   const { id, mode } = request.query;
   const INVALID_ID_OR_MODE = "Invalid or missing 'id' or 'mode' parameter.";
   const USER_NOT_FOUND = "User not found.";
-  const lichessUserByIdUrl = "https://lichess.org/api/user/{id}";
-  const lichessUserPerformanceUrl =
-    "https://lichess.org/api/user/{username}/perf/{mode}";
 
   if (missingIdOrModeParameters(id, mode)) {
     reply.code(400).send({

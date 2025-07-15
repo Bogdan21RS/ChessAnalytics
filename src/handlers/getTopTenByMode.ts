@@ -3,10 +3,9 @@ import { generalResponseMessages } from "./codeResponseMessages";
 
 export default async function getTopTenByMode(
   request: FastifyRequest,
-  reply: FastifyReply
+  reply: FastifyReply,
+  lichessTopTenUrl: string
 ) {
-  const lichessTopTenUrl = "https://lichess.org/api/player";
-
   const topTenResponse = await fetch(lichessTopTenUrl);
 
   if (failedResponse(topTenResponse)) {
