@@ -7,7 +7,6 @@ export default async function getUserById(
   lichessUserByIdUrl: string
 ) {
   const INVALID_ID = "Invalid or missing 'id' parameter.";
-  const USER_NOT_FOUND = "User not found.";
 
   const { id } = request.query;
 
@@ -33,7 +32,7 @@ export default async function getUserById(
       return;
     }
     reply.code(404).send({
-      error: USER_NOT_FOUND,
+      error: generalResponseMessages.USER_NOT_FOUND,
     });
     return;
   }

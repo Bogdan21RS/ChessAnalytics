@@ -10,7 +10,6 @@ export default async function getEnrichedUser(
 ) {
   const { id, mode } = request.query;
   const INVALID_ID_OR_MODE = "Invalid or missing 'id' or 'mode' parameter.";
-  const USER_NOT_FOUND = "User not found.";
 
   if (missingIdOrModeParameters(id, mode)) {
     reply.code(400).send({
@@ -44,7 +43,7 @@ export default async function getEnrichedUser(
 
   if (userInfoDoesNotHaveValidUsername(returnedUserInfo)) {
     reply.code(404).send({
-      error: USER_NOT_FOUND,
+      error: generalResponseMessages.USER_NOT_FOUND,
     });
     return;
   }
