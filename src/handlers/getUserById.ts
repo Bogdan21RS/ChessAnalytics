@@ -31,8 +31,15 @@ export default async function getUserById(
       });
       return;
     }
-    reply.code(404).send({
-      error: generalResponseMessages.USER_NOT_FOUND,
+    if (userNotFound(userByIdResponse)) {
+      reply.code(404).send({
+        error: generalResponseMessages.USER_NOT_FOUND,
+      });
+      return;
+    }
+
+    reply.code(400).send({
+      error: INVALID_ID,
     });
     return;
   }
@@ -48,6 +55,10 @@ function failedResponse(userByIdResponse: Response) {
 
 function serverError(userByIdResponse: Response) {
   return userByIdResponse.status === 500;
+}
+
+function userNotFound(userByIdResponse: Response) {
+  return userByIdResponse.status === 404;
 }
 
 function queryDoesNotHaveId(id: string | undefined) {

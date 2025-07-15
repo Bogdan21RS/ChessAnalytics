@@ -59,7 +59,7 @@ describe("get user by id endpoint end to end tests", () => {
     expect(data.error).toBe(INVALID_ID);
   });
 
-  it("returns 404 if the user does not exist", async () => {
+  it("returns an error if the user does not exist", async () => {
     const nonExistingId = "nonExistentIdThatWillNotBeFound";
     nock(lichessBaseUrl)
       .get(lichessUserByIdEndpoint.replace("{id}", nonExistingId))
@@ -79,5 +79,27 @@ describe("get user by id endpoint end to end tests", () => {
     const data = response.json();
 
     expect(data.error).toBe(generalResponseMessages.USER_NOT_FOUND);
+  });
+
+  it("returns an error if the user id is invalid", async () => {
+    const invalidId = "1231231231231231312312312312312312123123132132123123123";
+    nock(lichessBaseUrl)
+      .get(lichessUserByIdEndpoint.replace("{id}", invalidId))
+      .reply(400, {
+        error: INVALID_ID,
+      });
+
+    const response = await server.inject({
+      method: "GET",
+      url: userByIdEndpointUrl,
+      query: {
+        id: invalidId,
+      },
+    });
+
+    expect(response.statusCode).toBe(400);
+    const data = response.json();
+
+    expect(data.error).toBe(INVALID_ID);
   });
 });
