@@ -16,6 +16,7 @@ import { INVALID_ID_OR_MODE } from "../../src/handlers/getEnrichedUser";
 const existingId = "thibault";
 const existingMode = "bullet";
 const nonExistingId = "nonExistentIdThatWillNotBeFound";
+const nonExistingMode = "nonExistentModeThatWillNotBeFound";
 
 describe("get user by id endpoint end to end tests", () => {
   let server: any;
@@ -114,5 +115,35 @@ describe("get user by id endpoint end to end tests", () => {
     const data = response.json();
 
     expect(data.error).toBe(generalResponseMessages.USER_NOT_FOUND);
+  });
+
+  it("returns an error if the mode does not exist", async () => {
+    nock(lichessBaseUrl)
+      .get(lichessUserByIdEndpoint.replace("{id}", existingId))
+      .reply(200, playerInfo);
+
+    nock(lichessBaseUrl)
+      .get(
+        lichessUserPerformanceEndpoint
+          .replace("{username}", existingId)
+          .replace("{mode}", nonExistingMode)
+      )
+      .reply(400, {
+        error: INVALID_ID_OR_MODE,
+      });
+
+    const response = await server.inject({
+      method: "GET",
+      url: enrichedUserEndpointUrl,
+      query: {
+        id: existingId,
+        mode: nonExistingMode,
+      },
+    });
+
+    expect(response.statusCode).toBe(400);
+    const data = response.json();
+
+    expect(data.error).toBe(INVALID_ID_OR_MODE);
   });
 });
