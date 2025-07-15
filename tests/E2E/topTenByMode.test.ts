@@ -1,6 +1,6 @@
 import { describe, it, expect } from "@jest/globals";
 import { build } from "../../src/serverBuild";
-import { topTenEndpointUrl } from "../../src/routes/endpointRoutes";
+import { topTenEndpointUrl } from "../../src/routes/routes";
 
 describe("top ten by game-mode endpoint end to end tests", () => {
   let server: any;

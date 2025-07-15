@@ -1,6 +1,6 @@
 import { describe, it, expect } from "@jest/globals";
 import { build } from "../../src/serverBuild";
-import { userByIdEndpointUrl } from "../../src/routes/endpointRoutes";
+import { userByIdEndpointUrl } from "../../src/routes/routes";
 
 describe("get user by id endpoint end to end tests", () => {
   let server: any;
