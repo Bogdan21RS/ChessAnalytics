@@ -2,6 +2,9 @@ import { FastifyRequest, FastifyReply } from "fastify";
 import { generalResponseMessages } from "./codeResponseMessages";
 import { modeType } from "../schemas/generalTypes";
 
+export const INVALID_ID_OR_MODE =
+  "Invalid or missing 'id' or 'mode' parameter.";
+
 export default async function getEnrichedUser(
   request: FastifyRequest<{ Querystring: { id: string; mode: modeType } }>,
   reply: FastifyReply,
@@ -9,7 +12,6 @@ export default async function getEnrichedUser(
   lichessUserPerformanceUrl: string
 ) {
   const { id, mode } = request.query;
-  const INVALID_ID_OR_MODE = "Invalid or missing 'id' or 'mode' parameter.";
 
   if (missingIdOrModeParameters(id, mode)) {
     reply.code(400).send({
@@ -29,6 +31,13 @@ export default async function getEnrichedUser(
     if (serverError(userInfoResponse)) {
       reply.code(500).send({
         error: generalResponseMessages.SERVER_ERROR,
+      });
+      return;
+    }
+
+    if (userNotFound(userInfoResponse)) {
+      reply.code(404).send({
+        error: generalResponseMessages.USER_NOT_FOUND,
       });
       return;
     }
@@ -138,6 +147,10 @@ function getEnrichedUserBySpecification(
     ...modifiedUserPerformance,
   };
   return enrichedUser;
+}
+
+function userNotFound(userInfoResponse: Response) {
+  return userInfoResponse.status === 404;
 }
 
 function failedResponse(userInfoResponse: Response) {

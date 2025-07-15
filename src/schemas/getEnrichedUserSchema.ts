@@ -30,7 +30,7 @@ export const getEnrichedUserSchema = (
                 tv: { type: "number" },
               },
             },
-            rank: { type: "number" },
+            rank: { type: ["number", "null"] },
             resultStreak: {
               type: "object",
               properties: {
