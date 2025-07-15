@@ -1,13 +1,13 @@
 import { FastifyRequest, FastifyReply } from "fastify";
 import { generalResponseMessages } from "./codeResponseMessages";
 
+export const INVALID_ID = "Invalid or missing 'id' parameter.";
+
 export default async function getUserById(
   request: FastifyRequest<{ Querystring: { id: string } }>,
   reply: FastifyReply,
   lichessUserByIdUrl: string
 ) {
-  const INVALID_ID = "Invalid or missing 'id' parameter.";
-
   const { id } = request.query;
 
   if (queryDoesNotHaveId(id)) {
