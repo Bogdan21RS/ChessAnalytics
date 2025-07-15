@@ -5,16 +5,19 @@ import itemRoutes from "./routes/routes";
 
 export function build(): FastifyInstance {
   const fastify = Fastify({
-    logger: {
-      transport: {
-        target: "pino-pretty",
-        options: {
-          colorize: true,
-          translateTime: "SYS:standard",
-          ignore: "pid,hostname",
-        },
-      },
-    },
+    logger:
+      process.env.NODE_ENV === "production"
+        ? {
+            transport: {
+              target: "pino-pretty",
+              options: {
+                colorize: true,
+                translateTime: "SYS:standard",
+                ignore: "pid,hostname",
+              },
+            },
+          }
+        : false,
   });
 
   configureSwagger(fastify);

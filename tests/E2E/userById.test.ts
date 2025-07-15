@@ -8,6 +8,7 @@ import {
 import nock from "nock";
 import playerInfo from "./objectReplies/playerById.json";
 import { generalResponseMessages } from "../../src/handlers/codeResponseMessages";
+import { INVALID_ID } from "../../src/handlers/getUserById";
 
 describe("get user by id endpoint end to end tests", () => {
   let server: any;
@@ -44,6 +45,18 @@ describe("get user by id endpoint end to end tests", () => {
     expect(data.seenAt).toBe(1752475985759);
     expect(data.playTime.total).toBe(6408249);
     expect(data.playTime.tv).toBe(17974);
+  });
+
+  it("returns an error if the user ID is not given", async () => {
+    const response = await server.inject({
+      method: "GET",
+      url: userByIdEndpointUrl,
+    });
+
+    expect(response.statusCode).toBe(400);
+    const data = response.json();
+
+    expect(data.error).toBe(INVALID_ID);
   });
 
   it("returns 404 if the user does not exist", async () => {
