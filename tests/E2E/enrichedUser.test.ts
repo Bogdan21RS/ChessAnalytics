@@ -29,9 +29,7 @@ describe("get user by id endpoint end to end tests", () => {
   });
 
   it("returns the top ten players by game mode", async () => {
-    const existingId = "thibault";
     const existingUsername = "thibault";
-    const existingMode = "bullet";
 
     nock(lichessBaseUrl)
       .get(lichessUserByIdEndpoint.replace("{id}", existingId))
