@@ -22,14 +22,15 @@ export default async function getEnrichedUser(
   reply: FastifyReply
 ) {
   const { id, mode } = request.query;
-  const INVALID_TOP_OR_MODE = "Invalid or missing 'top' or 'mode' parameter.";
+  const INVALID_ID_OR_MODE = "Invalid or missing 'id' or 'mode' parameter.";
+  const USER_NOT_FOUND = "User not found.";
   const lichessUserByIdUrl = "https://lichess.org/api/user/{id}";
   const lichessUserPerformanceUrl =
     "https://lichess.org/api/user/{username}/perf/{mode}";
 
   if (missingIdOrModeParameters(id, mode)) {
     reply.code(400).send({
-      error: INVALID_TOP_OR_MODE,
+      error: INVALID_ID_OR_MODE,
     });
     return;
   }
@@ -50,7 +51,7 @@ export default async function getEnrichedUser(
     }
 
     reply.code(400).send({
-      error: INVALID_TOP_OR_MODE,
+      error: INVALID_ID_OR_MODE,
     });
     return;
   }
@@ -58,8 +59,8 @@ export default async function getEnrichedUser(
   const returnedUserInfo = await userInfoResponse.json();
 
   if (userInfoDoesNotHaveValidUsername(returnedUserInfo)) {
-    reply.code(400).send({
-      error: INVALID_TOP_OR_MODE,
+    reply.code(404).send({
+      error: USER_NOT_FOUND,
     });
     return;
   }
@@ -84,7 +85,7 @@ export default async function getEnrichedUser(
     }
 
     reply.code(400).send({
-      error: INVALID_TOP_OR_MODE,
+      error: INVALID_ID_OR_MODE,
     });
     return;
   }
