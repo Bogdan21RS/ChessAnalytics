@@ -1,6 +1,13 @@
 import { describe, it, expect } from "@jest/globals";
 import { build } from "../../src/serverBuild";
-import { topTenEndpointUrl } from "../../src/routes/routes";
+import {
+  topTenEndpointUrl,
+  lichessBaseUrl,
+  lichessTopTenEndpoint,
+} from "../../src/routes/routes";
+
+import nock from "nock";
+import topTenPlayersByMode from "./objectReplies/topTenPlayersByMode.json";
 
 describe("top ten by game-mode endpoint end to end tests", () => {
   let server: any;
@@ -14,6 +21,10 @@ describe("top ten by game-mode endpoint end to end tests", () => {
   });
 
   it("returns the top ten players by game mode", async () => {
+    nock(lichessBaseUrl)
+      .get(lichessTopTenEndpoint)
+      .reply(200, topTenPlayersByMode);
+
     const response = await server.inject({
       method: "GET",
       url: topTenEndpointUrl,
@@ -22,41 +33,13 @@ describe("top ten by game-mode endpoint end to end tests", () => {
     expect(response.statusCode).toBe(200);
     const data = response.json();
 
-    type GameModeInfo = {
-      rating: number;
-      progress: number;
-    };
-
-    type Modes = {
-      [mode: string]: GameModeInfo;
-    };
-
-    type TopUser = {
-      id: string;
-      username: string;
-      modes: Modes;
-    };
-
-    type TopTenByModeResponse = {
-      [mode: string]: TopUser[];
-    };
-
-    const typedData: TopTenByModeResponse = data;
-
-    Object.keys(typedData).forEach((gameMode: string) => {
-      expect(typeof gameMode).toBe("string");
-      const topUsers: TopUser[] = typedData[gameMode];
-      topUsers.forEach((topUser: TopUser) => {
-        expect(typeof topUser).toBe("object");
-        expect(topUser).toHaveProperty("id");
-        expect(topUser).toHaveProperty("username");
-        expect(topUser).toHaveProperty("modes");
-        expect(typeof topUser.modes).toBe("object");
-        expect(topUser.modes).toHaveProperty(gameMode);
-        const modeInfo = topUser.modes[gameMode];
-        expect(modeInfo).toHaveProperty("rating");
-        expect(modeInfo).toHaveProperty("progress");
-      });
-    });
+    expect(data).toHaveProperty("bullet");
+    expect(data).toHaveProperty("blitz");
+    expect(data.bullet).toHaveLength(10);
+    expect(data.bullet[0]).toHaveProperty("modes");
+    expect(data.bullet[0].id).toBe("ediz_gurel");
+    expect(data.bullet[0].username).toBe("Ediz_Gurel");
+    expect(data.bullet[0].modes.bullet.rating).toBe(3339);
+    expect(data.bullet[0].modes.bullet.progress).toBe(-37);
   });
 });

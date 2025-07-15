@@ -10,28 +10,40 @@ export const userByIdEndpointUrl = "/chess/user";
 export const enrichedUserEndpointUrl = "/chess/user/enriched";
 export const ratingHistoryEndpointUrl = "/chess/topPlayerHistory";
 
-const lichessTopTenUrl = "https://lichess.org/api/player";
-const lichessUserByIdUrl = "https://lichess.org/api/user/{id}";
-const lichessUserPerformanceUrl =
-  "https://lichess.org/api/user/{username}/perf/{mode}";
-const lichessRatingHistoryUrl =
-  "https://lichess.org/api/user/{username}/rating-history";
-const lichessTopTenFromModeUrl = "https://lichess.org/api/player/top/10/{mode}";
+export const lichessBaseUrl = "https://lichess.org/api";
+
+export const lichessTopTenEndpoint = "/player";
+export const lichessUserByIdEndpoint = "/user/{id}";
+export const lichessUserPerformanceEndpoint = "/user/{username}/perf/{mode}";
+export const lichessRatingHistoryEndpoint = "/user/{username}/rating-history";
+export const lichessTopTenFromModeEndpoint = "/player/top/10/{mode}";
 
 export default function itemRoutes(
   fastify: FastifyInstance,
   options: FastifyPluginOptions,
   done: (err?: Error) => void
 ) {
-  fastify.get(topTenEndpointUrl, getTopTenByModeSchema(lichessTopTenUrl));
-  fastify.get(userByIdEndpointUrl, getUserByIdSchema(lichessUserByIdUrl));
+  fastify.get(
+    topTenEndpointUrl,
+    getTopTenByModeSchema(`${lichessBaseUrl}${lichessTopTenEndpoint}`)
+  );
+  fastify.get(
+    userByIdEndpointUrl,
+    getUserByIdSchema(`${lichessBaseUrl}${lichessUserByIdEndpoint}`)
+  );
   fastify.get(
     enrichedUserEndpointUrl,
-    getEnrichedUserSchema(lichessUserByIdUrl, lichessUserPerformanceUrl)
+    getEnrichedUserSchema(
+      `${lichessBaseUrl}${lichessUserByIdEndpoint}`,
+      `${lichessBaseUrl}${lichessUserPerformanceEndpoint}`
+    )
   );
   fastify.get(
     ratingHistoryEndpointUrl,
-    getTopPlayerHistorySchema(lichessTopTenFromModeUrl, lichessRatingHistoryUrl)
+    getTopPlayerHistorySchema(
+      `${lichessBaseUrl}${lichessTopTenFromModeEndpoint}`,
+      `${lichessBaseUrl}${lichessRatingHistoryEndpoint}`
+    )
   );
 
   done();
