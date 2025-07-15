@@ -1,5 +1,5 @@
 import { FastifyRequest, FastifyReply } from "fastify";
-import { responseMessages } from "./codeResponseMessages";
+import { generalResponseMessages } from "./codeResponseMessages";
 
 type modeType =
   | "ultraBullet"
@@ -45,7 +45,7 @@ export default async function getEnrichedUser(
   if (failedResponse(userInfoResponse)) {
     if (serverError(userInfoResponse)) {
       reply.code(500).send({
-        error: responseMessages.SERVER_ERROR,
+        error: generalResponseMessages.SERVER_ERROR,
       });
       return;
     }
@@ -79,7 +79,7 @@ export default async function getEnrichedUser(
   if (failedResponse(userPerformanceResponse)) {
     if (serverError(userPerformanceResponse)) {
       reply.code(500).send({
-        error: responseMessages.SERVER_ERROR,
+        error: generalResponseMessages.SERVER_ERROR,
       });
       return;
     }

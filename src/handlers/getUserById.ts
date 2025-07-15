@@ -1,5 +1,5 @@
 import { FastifyRequest, FastifyReply } from "fastify";
-import { responseMessages } from "./codeResponseMessages";
+import { generalResponseMessages } from "./codeResponseMessages";
 
 export default async function getUserById(
   request: FastifyRequest<{ Querystring: { id: string } }>,
@@ -28,7 +28,7 @@ export default async function getUserById(
   if (failedResponse(userByIdResponse)) {
     if (serverError(userByIdResponse)) {
       reply.code(500).send({
-        error: responseMessages.SERVER_ERROR,
+        error: generalResponseMessages.SERVER_ERROR,
       });
       return;
     }

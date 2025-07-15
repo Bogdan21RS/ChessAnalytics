@@ -1,5 +1,5 @@
 import { FastifyRequest, FastifyReply } from "fastify";
-import { responseMessages } from "./codeResponseMessages";
+import { generalResponseMessages } from "./codeResponseMessages";
 
 export default async function getTopTenByMode(
   request: FastifyRequest,
@@ -11,7 +11,7 @@ export default async function getTopTenByMode(
 
   if (failedResponse(topTenResponse)) {
     reply.code(500).send({
-      error: responseMessages.SERVER_ERROR,
+      error: generalResponseMessages.SERVER_ERROR,
     });
     return;
   }
