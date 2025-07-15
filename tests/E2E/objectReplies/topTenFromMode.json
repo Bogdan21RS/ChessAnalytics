@@ -1,0 +1,117 @@
+{
+  "users": [
+    {
+      "id": "ediz_gurel",
+      "username": "Ediz_Gurel",
+      "perfs": {
+        "bullet": {
+          "rating": 3342,
+          "progress": 20
+        }
+      },
+      "title": "GM",
+      "patron": true
+    },
+    {
+      "id": "chess-art-us",
+      "username": "chess-art-us",
+      "perfs": {
+        "bullet": {
+          "rating": 3266,
+          "progress": 14
+        }
+      },
+      "title": "IM",
+      "online": true
+    },
+    {
+      "id": "heisenberg01",
+      "username": "Heisenberg01",
+      "perfs": {
+        "bullet": {
+          "rating": 3235,
+          "progress": 26
+        }
+      },
+      "title": "FM"
+    },
+    {
+      "id": "muisback",
+      "username": "muisback",
+      "perfs": {
+        "bullet": {
+          "rating": 3229,
+          "progress": -3
+        }
+      },
+      "title": "GM",
+      "patron": true
+    },
+    {
+      "id": "jaggust01",
+      "username": "Jaggust01",
+      "perfs": {
+        "bullet": {
+          "rating": 3216,
+          "progress": 6
+        }
+      },
+      "title": "IM"
+    },
+    {
+      "id": "kelfero",
+      "username": "KelFero",
+      "perfs": {
+        "bullet": {
+          "rating": 3204,
+          "progress": 19
+        }
+      },
+      "patron": true
+    },
+    {
+      "id": "jessica_rabbitt",
+      "username": "Jessica_Rabbitt",
+      "perfs": {
+        "bullet": {
+          "rating": 3202,
+          "progress": -41
+        }
+      }
+    },
+    {
+      "id": "ekizzz",
+      "username": "ekizzz",
+      "perfs": {
+        "bullet": {
+          "rating": 3201,
+          "progress": 12
+        }
+      }
+    },
+    {
+      "id": "tuzakli_egitim",
+      "username": "Tuzakli_Egitim",
+      "perfs": {
+        "bullet": {
+          "rating": 3200,
+          "progress": 25
+        }
+      },
+      "title": "FM",
+      "online": true
+    },
+    {
+      "id": "dr_tiger",
+      "username": "Dr_Tiger",
+      "perfs": {
+        "bullet": {
+          "rating": 3185,
+          "progress": 4
+        }
+      },
+      "title": "GM",
+      "online": true
+    }
+  ]
+}

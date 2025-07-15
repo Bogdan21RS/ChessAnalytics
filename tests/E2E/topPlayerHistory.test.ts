@@ -1,0 +1,162 @@
+import { describe, it, expect } from "@jest/globals";
+import { build } from "../../src/serverBuild";
+import {
+  lichessBaseUrl,
+  lichessTopTenFromModeEndpoint,
+  lichessRatingHistoryEndpoint,
+  ratingHistoryEndpointUrl,
+  enrichedUserEndpointUrl,
+} from "../../src/routes/routes";
+
+import nock from "nock";
+import topTenFromMode from "./objectReplies/topTenFromMode.json";
+import userRatingHistory from "./objectReplies/userRatingHistory.json";
+import { generalResponseMessages } from "../../src/handlers/codeResponseMessages";
+import { INVALID_TOP_OR_MODE } from "../../src/handlers/getTopPlayerHistory";
+import topTenFromModeWithoutUsername from "./objectReplies/topTenFromModeWithoutUsername.json";
+
+const existingMode = "bullet";
+const topUsername = "Ediz_Gurel";
+
+describe("get user by id endpoint end to end tests", () => {
+  let server: any;
+
+  beforeAll(() => {
+    server = build();
+  });
+
+  afterAll(async () => {
+    await server.close();
+  });
+
+  it("returns the rating history of the one of the top ten players by game mode", async () => {
+    nock(lichessBaseUrl)
+      .get(lichessTopTenFromModeEndpoint.replace("{mode}", existingMode))
+      .reply(200, topTenFromMode);
+
+    nock(lichessBaseUrl)
+      .get(
+        lichessRatingHistoryEndpoint
+          .replace("{username}", topUsername)
+          .replace("{mode}", existingMode)
+      )
+      .reply(200, userRatingHistory);
+
+    const response = await server.inject({
+      method: "GET",
+      url: ratingHistoryEndpointUrl,
+      query: {
+        top: 1,
+        mode: existingMode,
+      },
+    });
+
+    expect(response.statusCode).toBe(200);
+
+    const data = response.json();
+
+    expect(data.username).toBe(topUsername);
+    expect(data.history.length).toBe(2);
+    expect(data.history[0].date).toBe("2011-6-8");
+    expect(data.history[1].date).toBe("2011-7-29");
+    expect(data.history[0].rating).toBe(1472);
+    expect(data.history[1].rating).toBe(1332);
+  });
+
+  it("returns an error if the top parameter is not given", async () => {
+    const response = await server.inject({
+      method: "GET",
+      url: ratingHistoryEndpointUrl,
+      query: {
+        mode: existingMode,
+      },
+    });
+
+    expect(response.statusCode).toBe(400);
+    const data = response.json();
+
+    expect(data.error).toBe(INVALID_TOP_OR_MODE);
+  });
+
+  it("returns an error if the game mode is not given", async () => {
+    const response = await server.inject({
+      method: "GET",
+      url: ratingHistoryEndpointUrl,
+      query: {
+        top: 1,
+      },
+    });
+
+    expect(response.statusCode).toBe(400);
+    const data = response.json();
+
+    expect(data.error).toBe(INVALID_TOP_OR_MODE);
+  });
+
+  it("returns an error if the top parameter is not a number", async () => {
+    const response = await server.inject({
+      method: "GET",
+      url: ratingHistoryEndpointUrl,
+      query: {
+        top: "notANumber",
+        mode: existingMode,
+      },
+    });
+
+    expect(response.statusCode).toBe(400);
+    const data = response.json();
+
+    expect(data.error).toBe(INVALID_TOP_OR_MODE);
+  });
+
+  it("returns an error if the top parameter is zero", async () => {
+    const response = await server.inject({
+      method: "GET",
+      url: ratingHistoryEndpointUrl,
+      query: {
+        top: 0,
+        mode: existingMode,
+      },
+    });
+
+    expect(response.statusCode).toBe(400);
+    const data = response.json();
+
+    expect(data.error).toBe(INVALID_TOP_OR_MODE);
+  });
+  it("returns an error if the top parameter is two-hundred and one", async () => {
+    const response = await server.inject({
+      method: "GET",
+      url: ratingHistoryEndpointUrl,
+      query: {
+        top: 201,
+        mode: existingMode,
+      },
+    });
+
+    expect(response.statusCode).toBe(400);
+    const data = response.json();
+
+    expect(data.error).toBe(INVALID_TOP_OR_MODE);
+  });
+
+  it("returns an error if the selected player is not found", async () => {
+    nock(lichessBaseUrl)
+      .get(lichessTopTenFromModeEndpoint.replace("{mode}", existingMode))
+      .reply(200, topTenFromModeWithoutUsername);
+
+    const response = await server.inject({
+      method: "GET",
+      url: ratingHistoryEndpointUrl,
+      query: {
+        top: 1,
+        mode: existingMode,
+      },
+    });
+
+    expect(response.statusCode).toBe(404);
+    const data = response.json();
+
+    expect(data.error).toBe(generalResponseMessages.USER_NOT_FOUND);
+  });
+});

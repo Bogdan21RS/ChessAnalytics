@@ -2,15 +2,15 @@ import { FastifyRequest, FastifyReply } from "fastify";
 import { generalResponseMessages } from "./codeResponseMessages";
 import { modeType } from "../schemas/generalTypes";
 
+export const INVALID_TOP_OR_MODE =
+  "Invalid or missing 'top' or 'mode' parameter.";
+
 export default async function getTopPlayerHistory(
   request: FastifyRequest<{ Querystring: { top: number; mode: modeType } }>,
   reply: FastifyReply,
   lichessTopTenFromModeUrl: string,
   lichessRatingHistoryUrl: string
 ) {
-  const INVALID_TOP_OR_MODE = "Invalid or missing 'top' or 'mode' parameter.";
-  const USER_NOT_FOUND = "User not found.";
-
   const { top, mode } = request.query;
 
   if (missingTopOrModeParameters(top, mode)) {
@@ -54,7 +54,7 @@ export default async function getTopPlayerHistory(
 
   if (usernameDoesNotExist(selectedUsername)) {
     reply.code(404).send({
-      error: USER_NOT_FOUND,
+      error: generalResponseMessages.USER_NOT_FOUND,
     });
     return;
   }
@@ -136,11 +136,11 @@ function invalidTopParameter(top: number) {
   const MIN_TOP_POSITION = 1;
   const MAX_TOP_POSITION = 200;
 
-  return top < MIN_TOP_POSITION || top > MAX_TOP_POSITION;
+  return top < MIN_TOP_POSITION || top > MAX_TOP_POSITION || isNaN(top);
 }
 
 function missingTopOrModeParameters(top: number, mode: string) {
-  return !top || !mode;
+  return !top || !mode || isNaN(top);
 }
 
 function failedResponse(topTenResponse: Response) {

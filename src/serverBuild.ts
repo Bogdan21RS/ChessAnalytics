@@ -6,7 +6,7 @@ import itemRoutes from "./routes/routes";
 export function build(): FastifyInstance {
   const fastify = Fastify({
     logger:
-      process.env.NODE_ENV === "production"
+      process.env.NODE_ENV !== "test"
         ? {
             transport: {
               target: "pino-pretty",
