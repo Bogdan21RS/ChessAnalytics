@@ -5,7 +5,6 @@ import {
   lichessTopTenFromModeEndpoint,
   lichessRatingHistoryEndpoint,
   ratingHistoryEndpointUrl,
-  enrichedUserEndpointUrl,
 } from "../../src/routes/routes";
 
 import nock from "nock";
@@ -17,6 +16,7 @@ import topTenFromModeWithoutUsername from "./objectReplies/topTenFromModeWithout
 
 const existingMode = "bullet";
 const topUsername = "Ediz_Gurel";
+const nonExistingMode = "nonExistentModeThatWillNotBeFound";
 
 describe("get user by id endpoint end to end tests", () => {
   let server: any;
@@ -158,5 +158,25 @@ describe("get user by id endpoint end to end tests", () => {
     const data = response.json();
 
     expect(data.error).toBe(generalResponseMessages.USER_NOT_FOUND);
+  });
+
+  it("returns an error if the game mode is invalid", async () => {
+    nock(lichessBaseUrl)
+      .get(lichessTopTenFromModeEndpoint.replace("{mode}", nonExistingMode))
+      .reply(400, { error: INVALID_TOP_OR_MODE });
+
+    const response = await server.inject({
+      method: "GET",
+      url: ratingHistoryEndpointUrl,
+      query: {
+        top: 1,
+        mode: nonExistingMode,
+      },
+    });
+
+    expect(response.statusCode).toBe(400);
+    const data = response.json();
+
+    expect(data.error).toBe(INVALID_TOP_OR_MODE);
   });
 });
