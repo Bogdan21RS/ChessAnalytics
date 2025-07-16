@@ -14,70 +14,52 @@ export default async function getTopPlayerHistory(
   const { top, mode } = request.query;
 
   if (missingTopOrModeParameters(top, mode)) {
-    reply.code(400).send({
-      error: INVALID_TOP_OR_MODE,
-    });
-    return;
+    return sendInvalidOrMissingTopOrModeResponse(reply);
   }
-
   if (invalidTopParameter(top)) {
-    reply.code(400).send({
-      error: INVALID_TOP_OR_MODE,
-    });
-    return;
+    return sendInvalidOrMissingTopOrModeResponse(reply);
   }
 
   const topTenInfoResponse = await getTopTenInfoGivenMode(
     lichessTopTenFromModeUrl,
     mode
   );
-
   if (failedResponse(topTenInfoResponse)) {
-    if (serverError(topTenInfoResponse)) {
-      reply.code(500).send({
-        error: generalResponseMessages.SERVER_ERROR,
-      });
-      return;
-    }
-
-    reply.code(400).send({
-      error: INVALID_TOP_OR_MODE,
-    });
-    return;
+    return sendFailedResponse(reply, topTenInfoResponse);
   }
 
   const topTenInfo = await topTenInfoResponse.json();
-
   const selectedUsername = getUsernameFromTopTenInfo(topTenInfo, top);
-
   if (usernameDoesNotExist(selectedUsername)) {
-    reply.code(404).send({
-      error: generalResponseMessages.USER_NOT_FOUND,
-    });
-    return;
+    return sendUserNotFoundResponse(reply);
   }
 
   const userRatingHistoryResponse = await getUserRatingHistoryGivenUsername(
     lichessRatingHistoryUrl,
     selectedUsername
   );
-
   if (failedResponse(userRatingHistoryResponse)) {
-    if (serverError(userRatingHistoryResponse)) {
-      reply.code(500).send({
-        error: generalResponseMessages.SERVER_ERROR,
-      });
-      return;
-    }
-
-    reply.code(400).send({
-      error: INVALID_TOP_OR_MODE,
-    });
-    return;
+    return sendFailedResponse(reply, userRatingHistoryResponse);
   }
 
   const userRatingHistoryInfo = await userRatingHistoryResponse.json();
+  sendTopPlayerHistoryResponse(
+    reply,
+    userRatingHistoryInfo,
+    mode,
+    selectedUsername
+  );
+}
 
+function sendTopPlayerHistoryResponse(
+  reply: FastifyReply,
+  userRatingHistoryInfo: Array<{
+    name: modeType;
+    points: Array<Array<number>>;
+  }>,
+  mode: string,
+  selectedUsername: string
+) {
   reply
     .code(200)
     .send(
@@ -87,6 +69,35 @@ export default async function getTopPlayerHistory(
         selectedUsername
       )
     );
+}
+
+function sendFailedResponse(reply: FastifyReply, topTenInfoResponse: Response) {
+  if (serverError(topTenInfoResponse)) {
+    return sendServerErrorResponse(reply);
+  }
+
+  return sendInvalidOrMissingTopOrModeResponse(reply);
+}
+
+function sendUserNotFoundResponse(reply: FastifyReply) {
+  reply.code(404).send({
+    error: generalResponseMessages.USER_NOT_FOUND,
+  });
+  return;
+}
+
+function sendServerErrorResponse(reply: FastifyReply) {
+  reply.code(500).send({
+    error: generalResponseMessages.SERVER_ERROR,
+  });
+  return;
+}
+
+function sendInvalidOrMissingTopOrModeResponse(reply: FastifyReply) {
+  reply.code(400).send({
+    error: INVALID_TOP_OR_MODE,
+  });
+  return;
 }
 
 async function getTopTenInfoGivenMode(
