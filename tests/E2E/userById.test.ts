@@ -5,28 +5,50 @@ import {
   lichessUserByIdEndpoint,
   userByIdEndpointUrl,
 } from "../../src/routes/routes";
-import nock from "nock";
+
+import { http, HttpResponse } from "msw";
+import { setupServer } from "msw/node";
 import playerInfo from "./objectReplies/playerById.json";
 import { generalResponseMessages } from "../../src/handlers/codeResponseMessages";
 import { INVALID_ID } from "../../src/handlers/getUserById";
+
+const successHandler = (id: string) =>
+  http.get(
+    `${lichessBaseUrl}${lichessUserByIdEndpoint.replace("{id}", id)}`,
+    async () => {
+      return HttpResponse.json(playerInfo, {
+        status: 200,
+      });
+    }
+  );
+
+const errorHandler = (id: string) =>
+  http.get(
+    `${lichessBaseUrl}${lichessUserByIdEndpoint.replace("{id}", id)}`,
+    async () => {
+      return HttpResponse.json({ error: INVALID_ID }, { status: 400 });
+    }
+  );
+const serverMock = setupServer();
 
 describe("get user by id endpoint end to end tests", () => {
   let server: any;
 
   beforeAll(() => {
+    serverMock.listen();
     server = build();
   });
 
+  afterEach(() => serverMock.resetHandlers());
+
   afterAll(async () => {
+    serverMock.close();
     await server.close();
   });
 
   it("returns the top ten players by game mode", async () => {
     const existingId = "thibault";
-
-    nock(lichessBaseUrl)
-      .get(lichessUserByIdEndpoint.replace("{id}", existingId))
-      .reply(200, playerInfo);
+    serverMock.use(successHandler(existingId));
 
     const response = await server.inject({
       method: "GET",
@@ -61,11 +83,6 @@ describe("get user by id endpoint end to end tests", () => {
 
   it("returns an error if the user does not exist", async () => {
     const nonExistingId = "nonExistentIdThatWillNotBeFound";
-    nock(lichessBaseUrl)
-      .get(lichessUserByIdEndpoint.replace("{id}", nonExistingId))
-      .reply(404, {
-        error: generalResponseMessages.USER_NOT_FOUND,
-      });
 
     const response = await server.inject({
       method: "GET",
@@ -83,11 +100,7 @@ describe("get user by id endpoint end to end tests", () => {
 
   it("returns an error if the user id is invalid", async () => {
     const invalidId = "1231231231231231312312312312312312123123132132123123123";
-    nock(lichessBaseUrl)
-      .get(lichessUserByIdEndpoint.replace("{id}", invalidId))
-      .reply(400, {
-        error: INVALID_ID,
-      });
+    serverMock.use(errorHandler(invalidId));
 
     const response = await server.inject({
       method: "GET",

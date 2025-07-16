@@ -7,40 +7,70 @@ import {
   ratingHistoryEndpointUrl,
 } from "../../src/routes/routes";
 
-import nock from "nock";
+import { http, HttpResponse } from "msw";
+import { setupServer } from "msw/node";
 import topTenFromMode from "./objectReplies/topTenFromMode.json";
 import userRatingHistory from "./objectReplies/userRatingHistory.json";
 import { generalResponseMessages } from "../../src/handlers/codeResponseMessages";
 import { INVALID_TOP_OR_MODE } from "../../src/handlers/getTopPlayerHistory";
 import topTenFromModeWithoutUsername from "./objectReplies/topTenFromModeWithoutUsername.json";
 
+const serverMock = setupServer();
+
+const topTenFromModeHandler = (mode: string) =>
+  http.get(
+    `${lichessBaseUrl}${lichessTopTenFromModeEndpoint.replace("{mode}", mode)}`,
+    async () => {
+      return HttpResponse.json(topTenFromMode, { status: 200 });
+    }
+  );
+const topTenFromModeHandlerWithInvalidMode = (mode: string) =>
+  http.get(
+    `${lichessBaseUrl}${lichessTopTenFromModeEndpoint.replace("{mode}", mode)}`,
+    async () => {
+      return HttpResponse.json({ error: INVALID_TOP_OR_MODE }, { status: 400 });
+    }
+  );
+const ratingHistoryHandler = (username: string, mode: string) =>
+  http.get(
+    `${lichessBaseUrl}${lichessRatingHistoryEndpoint
+      .replace("{username}", username)
+      .replace("{mode}", mode)}`,
+    async () => {
+      return HttpResponse.json(userRatingHistory, { status: 200 });
+    }
+  );
+
+const topTenFromModeHandlerWithoutUsername = (mode: string) =>
+  http.get(
+    `${lichessBaseUrl}${lichessTopTenFromModeEndpoint.replace("{mode}", mode)}`,
+    async () => {
+      return HttpResponse.json(topTenFromModeWithoutUsername, { status: 200 });
+    }
+  );
+
 const existingMode = "bullet";
 const topUsername = "Ediz_Gurel";
 const nonExistingMode = "nonExistentModeThatWillNotBeFound";
 
-describe("get user by id endpoint end to end tests", () => {
+describe("get user rating history end to end tests", () => {
   let server: any;
 
   beforeAll(() => {
+    serverMock.listen();
     server = build();
   });
 
+  afterEach(() => serverMock.resetHandlers());
+
   afterAll(async () => {
+    serverMock.close();
     await server.close();
   });
 
   it("returns the rating history of the one of the top ten players by game mode", async () => {
-    nock(lichessBaseUrl)
-      .get(lichessTopTenFromModeEndpoint.replace("{mode}", existingMode))
-      .reply(200, topTenFromMode);
-
-    nock(lichessBaseUrl)
-      .get(
-        lichessRatingHistoryEndpoint
-          .replace("{username}", topUsername)
-          .replace("{mode}", existingMode)
-      )
-      .reply(200, userRatingHistory);
+    serverMock.use(topTenFromModeHandler(existingMode));
+    serverMock.use(ratingHistoryHandler(topUsername, existingMode));
 
     const response = await server.inject({
       method: "GET",
@@ -141,9 +171,7 @@ describe("get user by id endpoint end to end tests", () => {
   });
 
   it("returns an error if the selected player is not found", async () => {
-    nock(lichessBaseUrl)
-      .get(lichessTopTenFromModeEndpoint.replace("{mode}", existingMode))
-      .reply(200, topTenFromModeWithoutUsername);
+    serverMock.use(topTenFromModeHandlerWithoutUsername(existingMode));
 
     const response = await server.inject({
       method: "GET",
@@ -161,9 +189,7 @@ describe("get user by id endpoint end to end tests", () => {
   });
 
   it("returns an error if the game mode is invalid", async () => {
-    nock(lichessBaseUrl)
-      .get(lichessTopTenFromModeEndpoint.replace("{mode}", nonExistingMode))
-      .reply(400, { error: INVALID_TOP_OR_MODE });
+    serverMock.use(topTenFromModeHandlerWithInvalidMode(nonExistingMode));
 
     const response = await server.inject({
       method: "GET",

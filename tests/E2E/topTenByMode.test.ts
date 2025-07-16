@@ -1,4 +1,4 @@
-import { describe, it, expect } from "@jest/globals";
+import { describe, it, expect, beforeAll, afterAll } from "@jest/globals";
 import { build } from "../../src/serverBuild";
 import {
   topTenEndpointUrl,
@@ -6,25 +6,32 @@ import {
   lichessTopTenEndpoint,
 } from "../../src/routes/routes";
 
-import nock from "nock";
+import { http, HttpResponse } from "msw";
+import { setupServer } from "msw/node";
 import topTenPlayersByMode from "./objectReplies/topTenPlayersByMode.json";
+
+const serverMock = setupServer(
+  http.get(`${lichessBaseUrl}${lichessTopTenEndpoint}`, async () => {
+    return HttpResponse.json(topTenPlayersByMode, {
+      status: 200,
+    });
+  })
+);
 
 describe("top ten by game-mode endpoint end to end tests", () => {
   let server: any;
 
   beforeAll(() => {
+    serverMock.listen();
     server = build();
   });
 
   afterAll(async () => {
+    serverMock.close();
     await server.close();
   });
 
   it("returns the top ten players by game mode", async () => {
-    nock(lichessBaseUrl)
-      .get(lichessTopTenEndpoint)
-      .reply(200, topTenPlayersByMode);
-
     const response = await server.inject({
       method: "GET",
       url: topTenEndpointUrl,

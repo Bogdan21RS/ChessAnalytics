@@ -7,42 +7,89 @@ import {
   enrichedUserEndpointUrl,
 } from "../../src/routes/routes";
 
-import nock from "nock";
+import { http, HttpResponse } from "msw";
+import { setupServer } from "msw/node";
+
 import playerInfo from "./objectReplies/playerById.json";
 import userPerformance from "./objectReplies/userPerformance.json";
 import { generalResponseMessages } from "../../src/handlers/codeResponseMessages";
 import { INVALID_ID_OR_MODE } from "../../src/handlers/getEnrichedUser";
 
+const serverMock = setupServer();
+const userByIdHandler = (id: string) =>
+  http.get(
+    `${lichessBaseUrl}${lichessUserByIdEndpoint.replace("{id}", id)}`,
+    async () => {
+      return HttpResponse.json(playerInfo, { status: 200 });
+    }
+  );
+
+const userByIdHandlerWithInvalidIdOrMode = (id: string) =>
+  http.get(
+    `${lichessBaseUrl}${lichessUserByIdEndpoint.replace("{id}", id)}`,
+    async () => {
+      return HttpResponse.json({ error: INVALID_ID_OR_MODE }, { status: 400 });
+    }
+  );
+
+const userByIdHandlerWithoutExistingUser = (id: string) =>
+  http.get(
+    `${lichessBaseUrl}${lichessUserByIdEndpoint.replace("{id}", id)}`,
+    async () => {
+      return HttpResponse.json(
+        { error: generalResponseMessages.USER_NOT_FOUND },
+        { status: 404 }
+      );
+    }
+  );
+
+const userPerformanceHandler = (username: string, mode: string) =>
+  http.get(
+    `${lichessBaseUrl}${lichessUserPerformanceEndpoint
+      .replace("{username}", username)
+      .replace("{mode}", mode)}`,
+    async () => {
+      return HttpResponse.json(userPerformance, { status: 200 });
+    }
+  );
+
+const userPerformanceHandlerWithInvalidIdOrMode = (
+  username: string,
+  mode: string
+) =>
+  http.get(
+    `${lichessBaseUrl}${lichessUserPerformanceEndpoint
+      .replace("{username}", username)
+      .replace("{mode}", mode)}`,
+    async () => {
+      return HttpResponse.json({ error: INVALID_ID_OR_MODE }, { status: 400 });
+    }
+  );
 const existingId = "thibault";
 const existingMode = "bullet";
 const nonExistingId = "nonExistentIdThatWillNotBeFound";
 const nonExistingMode = "nonExistentModeThatWillNotBeFound";
 
-describe("get user by id endpoint end to end tests", () => {
+describe("get enriched user endpoint end to end tests", () => {
   let server: any;
 
   beforeAll(() => {
+    serverMock.listen();
     server = build();
   });
 
+  afterEach(() => serverMock.resetHandlers());
+
   afterAll(async () => {
+    serverMock.close();
     await server.close();
   });
 
   it("returns the top ten players by game mode", async () => {
     const existingUsername = "thibault";
 
-    nock(lichessBaseUrl)
-      .get(lichessUserByIdEndpoint.replace("{id}", existingId))
-      .reply(200, playerInfo);
-
-    nock(lichessBaseUrl)
-      .get(
-        lichessUserPerformanceEndpoint
-          .replace("{username}", existingUsername)
-          .replace("{mode}", existingMode)
-      )
-      .reply(200, userPerformance);
+    serverMock.use(userByIdHandler(existingId));
+    serverMock.use(userPerformanceHandler(existingUsername, existingMode));
 
     const response = await server.inject({
       method: "GET",
@@ -96,11 +143,7 @@ describe("get user by id endpoint end to end tests", () => {
   });
 
   it("returns an error if the user does not exist", async () => {
-    nock(lichessBaseUrl)
-      .get(lichessUserByIdEndpoint.replace("{id}", nonExistingId))
-      .reply(404, {
-        error: generalResponseMessages.USER_NOT_FOUND,
-      });
+    serverMock.use(userByIdHandlerWithoutExistingUser(nonExistingId));
 
     const response = await server.inject({
       method: "GET",
@@ -118,19 +161,10 @@ describe("get user by id endpoint end to end tests", () => {
   });
 
   it("returns an error if the mode is invalid", async () => {
-    nock(lichessBaseUrl)
-      .get(lichessUserByIdEndpoint.replace("{id}", existingId))
-      .reply(200, playerInfo);
-
-    nock(lichessBaseUrl)
-      .get(
-        lichessUserPerformanceEndpoint
-          .replace("{username}", existingId)
-          .replace("{mode}", nonExistingMode)
-      )
-      .reply(400, {
-        error: INVALID_ID_OR_MODE,
-      });
+    serverMock.use(userByIdHandler(existingId));
+    serverMock.use(
+      userPerformanceHandlerWithInvalidIdOrMode(existingId, nonExistingMode)
+    );
 
     const response = await server.inject({
       method: "GET",
@@ -149,11 +183,7 @@ describe("get user by id endpoint end to end tests", () => {
 
   it("returns an error if the id is invalid", async () => {
     const invalidId = "1231231231231231312312312312312312123123132132123123123";
-    nock(lichessBaseUrl)
-      .get(lichessUserByIdEndpoint.replace("{id}", invalidId))
-      .reply(400, {
-        error: INVALID_ID_OR_MODE,
-      });
+    serverMock.use(userByIdHandlerWithInvalidIdOrMode(invalidId));
 
     const response = await server.inject({
       method: "GET",
