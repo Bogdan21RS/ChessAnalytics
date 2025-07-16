@@ -7,17 +7,23 @@ export default async function getTopTenByMode(
   lichessTopTenUrl: string
 ) {
   const topTenInfoResponse = await getTopTenInfo(lichessTopTenUrl);
-
   if (failedResponse(topTenInfoResponse)) {
-    reply.code(500).send({
-      error: generalResponseMessages.SERVER_ERROR,
-    });
-    return;
+    return sendServerErrorResponse(reply);
   }
 
   const topTenInfo = await topTenInfoResponse.json();
-
   modifyTopTenInfoToSpecification(topTenInfo);
+  sendTopTenByModeResponse(reply, topTenInfo);
+}
+
+function sendServerErrorResponse(reply: FastifyReply) {
+  reply.code(500).send({
+    error: generalResponseMessages.SERVER_ERROR,
+  });
+  return;
+}
+
+function sendTopTenByModeResponse(reply: FastifyReply, topTenInfo: Object) {
   reply.code(200).send(topTenInfo);
 }
 
