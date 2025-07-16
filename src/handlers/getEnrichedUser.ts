@@ -20,12 +20,7 @@ export default async function getEnrichedUser(
     return;
   }
 
-  const userInfoResponse = await fetch(
-    `${lichessUserByIdUrl.replace("{id}", id)}`,
-    {
-      method: "GET",
-    }
-  );
+  const userInfoResponse = await getUserInfoGivenId(lichessUserByIdUrl, id);
 
   if (failedResponse(userInfoResponse)) {
     if (serverError(userInfoResponse)) {
@@ -59,13 +54,10 @@ export default async function getEnrichedUser(
 
   const userInfo = getUserInfoBySpecification(returnedUserInfo);
 
-  const userPerformanceResponse = await fetch(
-    `${lichessUserPerformanceUrl
-      .replace("{username}", userInfo.username)
-      .replace("{mode}", mode)}`,
-    {
-      method: "GET",
-    }
+  const userPerformanceResponse = await getUserPerformanceGivenUsernameAndMode(
+    lichessUserPerformanceUrl,
+    userInfo.username,
+    mode
   );
 
   if (failedResponse(userPerformanceResponse)) {
@@ -87,6 +79,27 @@ export default async function getEnrichedUser(
   reply
     .code(200)
     .send(getEnrichedUserBySpecification(userPerformance, userInfo));
+}
+
+async function getUserInfoGivenId(lichessUserByIdUrl: string, id: string) {
+  return await fetch(`${lichessUserByIdUrl.replace("{id}", id)}`, {
+    method: "GET",
+  });
+}
+
+async function getUserPerformanceGivenUsernameAndMode(
+  lichessUserPerformanceUrl: string,
+  username: string,
+  mode: string
+) {
+  return await fetch(
+    `${lichessUserPerformanceUrl
+      .replace("{username}", username)
+      .replace("{mode}", mode)}`,
+    {
+      method: "GET",
+    }
+  );
 }
 
 function getUserInfoBySpecification(userInfo: {

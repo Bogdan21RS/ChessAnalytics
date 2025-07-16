@@ -17,21 +17,16 @@ export default async function getUserById(
     return;
   }
 
-  const userByIdResponse = await fetch(
-    `${lichessUserByIdUrl.replace("{id}", id)}`,
-    {
-      method: "GET",
-    }
-  );
+  const userInfoResponse = await getUserInfoGivenId(lichessUserByIdUrl, id);
 
-  if (failedResponse(userByIdResponse)) {
-    if (serverError(userByIdResponse)) {
+  if (failedResponse(userInfoResponse)) {
+    if (serverError(userInfoResponse)) {
       reply.code(500).send({
         error: generalResponseMessages.SERVER_ERROR,
       });
       return;
     }
-    if (userNotFound(userByIdResponse)) {
+    if (userNotFound(userInfoResponse)) {
       reply.code(404).send({
         error: generalResponseMessages.USER_NOT_FOUND,
       });
@@ -44,9 +39,15 @@ export default async function getUserById(
     return;
   }
 
-  const userByIdInfo = await userByIdResponse.json();
+  const userByIdInfo = await userInfoResponse.json();
 
   reply.code(200).send(getUserByIdBySpecification(userByIdInfo));
+}
+
+async function getUserInfoGivenId(lichessUserByIdUrl: string, id: string) {
+  return await fetch(`${lichessUserByIdUrl.replace("{id}", id)}`, {
+    method: "GET",
+  });
 }
 
 function failedResponse(userByIdResponse: Response) {

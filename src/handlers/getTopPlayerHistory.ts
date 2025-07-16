@@ -27,15 +27,13 @@ export default async function getTopPlayerHistory(
     return;
   }
 
-  const topTenResponse = await fetch(
-    lichessTopTenFromModeUrl.replace("{mode}", mode),
-    {
-      method: "GET",
-    }
+  const topTenInfoResponse = await getTopTenInfoGivenMode(
+    lichessTopTenFromModeUrl,
+    mode
   );
 
-  if (failedResponse(topTenResponse)) {
-    if (serverError(topTenResponse)) {
+  if (failedResponse(topTenInfoResponse)) {
+    if (serverError(topTenInfoResponse)) {
       reply.code(500).send({
         error: generalResponseMessages.SERVER_ERROR,
       });
@@ -48,7 +46,7 @@ export default async function getTopPlayerHistory(
     return;
   }
 
-  const topTenInfo = await topTenResponse.json();
+  const topTenInfo = await topTenInfoResponse.json();
 
   const selectedUsername = getUsernameFromTopTenInfo(topTenInfo, top);
 
@@ -59,11 +57,9 @@ export default async function getTopPlayerHistory(
     return;
   }
 
-  const userRatingHistoryResponse = await fetch(
-    `${lichessRatingHistoryUrl.replace("{username}", selectedUsername)}`,
-    {
-      method: "GET",
-    }
+  const userRatingHistoryResponse = await getUserRatingHistoryGivenUsername(
+    lichessRatingHistoryUrl,
+    selectedUsername
   );
 
   if (failedResponse(userRatingHistoryResponse)) {
@@ -91,6 +87,27 @@ export default async function getTopPlayerHistory(
         selectedUsername
       )
     );
+}
+
+async function getTopTenInfoGivenMode(
+  lichessTopTenFromModeUrl: string,
+  mode: string
+) {
+  return await fetch(lichessTopTenFromModeUrl.replace("{mode}", mode), {
+    method: "GET",
+  });
+}
+
+async function getUserRatingHistoryGivenUsername(
+  lichessRatingHistoryUrl: string,
+  username: string
+) {
+  return await fetch(
+    `${lichessRatingHistoryUrl.replace("{username}", username)}`,
+    {
+      method: "GET",
+    }
+  );
 }
 
 function getUserRatingHistoryBySpecification(
