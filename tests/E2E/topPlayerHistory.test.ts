@@ -49,6 +49,17 @@ const topTenFromModeHandlerWithoutUsername = (mode: string) =>
     }
   );
 
+const serverErrorHandler = (top: number, mode: string) =>
+  http.get(
+    `${lichessBaseUrl}${lichessTopTenFromModeEndpoint.replace("{mode}", mode)}`,
+    async () => {
+      return HttpResponse.json(
+        { error: generalResponseMessages.SERVER_ERROR },
+        { status: 500 }
+      );
+    }
+  );
+
 const existingMode = "bullet";
 const topUsername = "Ediz_Gurel";
 const nonExistingMode = "nonExistentModeThatWillNotBeFound";
@@ -204,5 +215,21 @@ describe("get user rating history end to end tests", () => {
     const data = response.json();
 
     expect(data.error).toBe(INVALID_TOP_OR_MODE);
+  });
+
+  it("returns a server error if the api fails", async () => {
+    serverMock.use(serverErrorHandler(1, existingMode));
+
+    const response = await server.inject({
+      method: "GET",
+      url: ratingHistoryEndpointUrl,
+      query: {
+        top: 1,
+        mode: existingMode,
+      },
+    });
+
+    expect(response.statusCode).toBe(500);
+    expect(response.json().error).toBe(generalResponseMessages.SERVER_ERROR);
   });
 });

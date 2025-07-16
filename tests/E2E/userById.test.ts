@@ -29,6 +29,18 @@ const errorHandler = (id: string) =>
       return HttpResponse.json({ error: INVALID_ID }, { status: 400 });
     }
   );
+
+const serverErrorHandler = (id: string) =>
+  http.get(
+    `${lichessBaseUrl}${lichessUserByIdEndpoint.replace("{id}", id)}`,
+    async () => {
+      return HttpResponse.json(
+        { error: generalResponseMessages.SERVER_ERROR },
+        { status: 500 }
+      );
+    }
+  );
+
 const serverMock = setupServer();
 
 describe("get user by id endpoint end to end tests", () => {
@@ -114,5 +126,20 @@ describe("get user by id endpoint end to end tests", () => {
     const data = response.json();
 
     expect(data.error).toBe(INVALID_ID);
+  });
+
+  it("returns a server error if the api fails", async () => {
+    serverMock.use(serverErrorHandler("thibault"));
+
+    const response = await server.inject({
+      method: "GET",
+      url: userByIdEndpointUrl,
+      query: {
+        id: "thibault",
+      },
+    });
+
+    expect(response.statusCode).toBe(500);
+    expect(response.json().error).toBe(generalResponseMessages.SERVER_ERROR);
   });
 });

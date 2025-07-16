@@ -65,6 +65,18 @@ const userPerformanceHandlerWithInvalidIdOrMode = (
       return HttpResponse.json({ error: INVALID_ID_OR_MODE }, { status: 400 });
     }
   );
+
+const serverErrorHandler = (id: string) =>
+  http.get(
+    `${lichessBaseUrl}${lichessUserByIdEndpoint.replace("{id}", id)}`,
+    async () => {
+      return HttpResponse.json(
+        { error: generalResponseMessages.SERVER_ERROR },
+        { status: 500 }
+      );
+    }
+  );
+
 const existingId = "thibault";
 const existingMode = "bullet";
 const nonExistingId = "nonExistentIdThatWillNotBeFound";
@@ -198,5 +210,21 @@ describe("get enriched user endpoint end to end tests", () => {
     const data = response.json();
 
     expect(data.error).toBe(INVALID_ID_OR_MODE);
+  });
+
+  it("returns a server error if the api fails", async () => {
+    serverMock.use(serverErrorHandler(existingId));
+
+    const response = await server.inject({
+      method: "GET",
+      url: enrichedUserEndpointUrl,
+      query: {
+        id: existingId,
+        mode: existingMode,
+      },
+    });
+
+    expect(response.statusCode).toBe(500);
+    expect(response.json().error).toBe(generalResponseMessages.SERVER_ERROR);
   });
 });
