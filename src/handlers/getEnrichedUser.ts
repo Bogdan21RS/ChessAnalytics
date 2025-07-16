@@ -12,46 +12,19 @@ export default async function getEnrichedUser(
   lichessUserPerformanceUrl: string
 ) {
   const { id, mode } = request.query;
-
   if (missingIdOrModeParameters(id, mode)) {
-    reply.code(400).send({
-      error: INVALID_ID_OR_MODE,
-    });
-    return;
+    return sendInvalidOrMissingIdOrModeResponse(reply);
   }
 
   const userInfoResponse = await getUserInfoGivenId(lichessUserByIdUrl, id);
-
   if (failedResponse(userInfoResponse)) {
-    if (serverError(userInfoResponse)) {
-      reply.code(500).send({
-        error: generalResponseMessages.SERVER_ERROR,
-      });
-      return;
-    }
-
-    if (userNotFound(userInfoResponse)) {
-      reply.code(404).send({
-        error: generalResponseMessages.USER_NOT_FOUND,
-      });
-      return;
-    }
-
-    reply.code(400).send({
-      error: INVALID_ID_OR_MODE,
-    });
-    return;
+    return sendFailedResponse(reply, userInfoResponse);
   }
 
   const returnedUserInfo = await userInfoResponse.json();
-
   if (userInfoDoesNotHaveValidUsername(returnedUserInfo)) {
-    reply.code(404).send({
-      error: generalResponseMessages.USER_NOT_FOUND,
-    });
-    return;
+    return sendUserNotFoundResponse(reply);
   }
-
   const userInfo = getUserInfoBySpecification(returnedUserInfo);
 
   const userPerformanceResponse = await getUserPerformanceGivenUsernameAndMode(
@@ -59,26 +32,47 @@ export default async function getEnrichedUser(
     userInfo.username,
     mode
   );
-
   if (failedResponse(userPerformanceResponse)) {
-    if (serverError(userPerformanceResponse)) {
-      reply.code(500).send({
-        error: generalResponseMessages.SERVER_ERROR,
-      });
-      return;
-    }
-
-    reply.code(400).send({
-      error: INVALID_ID_OR_MODE,
-    });
-    return;
+    return sendFailedResponse(reply, userPerformanceResponse);
   }
 
   const userPerformance = await userPerformanceResponse.json();
+  sendEnrichedUserResponse(reply, userPerformance, userInfo);
+}
 
+function sendEnrichedUserResponse(
+  reply: FastifyReply,
+  userPerformance: {
+    stat: {
+      resultStreak: {
+        win: { cur: { v: number }; max: { v: number } };
+        loss: { cur: { v: number }; max: { v: number } };
+      };
+    };
+    rank: number;
+  },
+  userInfo: {
+    id: string;
+    username: string;
+    profile: Object;
+    playTime: Object;
+  }
+) {
   reply
     .code(200)
     .send(getEnrichedUserBySpecification(userPerformance, userInfo));
+}
+
+function sendFailedResponse(reply: FastifyReply, userInfoResponse: Response) {
+  if (serverError(userInfoResponse)) {
+    return sendServerErrorResponse(reply);
+  }
+
+  if (userNotFound(userInfoResponse)) {
+    return sendUserNotFoundResponse(reply);
+  }
+
+  return sendInvalidOrMissingIdOrModeResponse(reply);
 }
 
 async function getUserInfoGivenId(lichessUserByIdUrl: string, id: string) {
@@ -179,4 +173,25 @@ function missingIdOrModeParameters(
   mode: string | undefined
 ) {
   return !id || !mode;
+}
+
+function sendInvalidOrMissingIdOrModeResponse(reply: FastifyReply) {
+  reply.code(400).send({
+    error: INVALID_ID_OR_MODE,
+  });
+  return;
+}
+
+function sendServerErrorResponse(reply: FastifyReply) {
+  reply.code(500).send({
+    error: generalResponseMessages.SERVER_ERROR,
+  });
+  return;
+}
+
+function sendUserNotFoundResponse(reply: FastifyReply) {
+  reply.code(404).send({
+    error: generalResponseMessages.USER_NOT_FOUND,
+  });
+  return;
 }
