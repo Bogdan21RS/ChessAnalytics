@@ -124,7 +124,7 @@ describe("get enriched user endpoint end to end tests", () => {
     expect(data.resultStreak.wins.current).toBe(0);
   });
 
-  it("returns an error if the user ID is not given", async () => {
+  it("returns an invalid or missing id or mode error if the user ID is not given", async () => {
     const response = await server.inject({
       method: "GET",
       url: enrichedUserEndpointUrl,
@@ -139,7 +139,7 @@ describe("get enriched user endpoint end to end tests", () => {
     expect(data.error).toBe(INVALID_ID_OR_MODE);
   });
 
-  it("returns an error if the game mode is not given", async () => {
+  it("returns an invalid or missing id or mode error if the game mode is not given", async () => {
     const response = await server.inject({
       method: "GET",
       url: enrichedUserEndpointUrl,
@@ -154,25 +154,7 @@ describe("get enriched user endpoint end to end tests", () => {
     expect(data.error).toBe(INVALID_ID_OR_MODE);
   });
 
-  it("returns an error if the user does not exist", async () => {
-    serverMock.use(userByIdHandlerWithoutExistingUser(nonExistingId));
-
-    const response = await server.inject({
-      method: "GET",
-      url: enrichedUserEndpointUrl,
-      query: {
-        id: nonExistingId,
-        mode: existingMode,
-      },
-    });
-
-    expect(response.statusCode).toBe(404);
-    const data = response.json();
-
-    expect(data.error).toBe(generalResponseMessages.USER_NOT_FOUND);
-  });
-
-  it("returns an error if the mode is invalid", async () => {
+  it("returns an invalid or missing id or mode error if the mode is invalid", async () => {
     serverMock.use(userByIdHandler(existingId));
     serverMock.use(
       userPerformanceHandlerWithInvalidIdOrMode(existingId, nonExistingMode)
@@ -193,7 +175,7 @@ describe("get enriched user endpoint end to end tests", () => {
     expect(data.error).toBe(INVALID_ID_OR_MODE);
   });
 
-  it("returns an error if the id is invalid", async () => {
+  it("returns an invalid or missing id or mode error if the id is invalid", async () => {
     const invalidId = "1231231231231231312312312312312312123123132132123123123";
     serverMock.use(userByIdHandlerWithInvalidIdOrMode(invalidId));
 
@@ -210,6 +192,24 @@ describe("get enriched user endpoint end to end tests", () => {
     const data = response.json();
 
     expect(data.error).toBe(INVALID_ID_OR_MODE);
+  });
+
+  it("returns a user not found error if the user does not exist", async () => {
+    serverMock.use(userByIdHandlerWithoutExistingUser(nonExistingId));
+
+    const response = await server.inject({
+      method: "GET",
+      url: enrichedUserEndpointUrl,
+      query: {
+        id: nonExistingId,
+        mode: existingMode,
+      },
+    });
+
+    expect(response.statusCode).toBe(404);
+    const data = response.json();
+
+    expect(data.error).toBe(generalResponseMessages.USER_NOT_FOUND);
   });
 
   it("returns a server error if the api fails", async () => {

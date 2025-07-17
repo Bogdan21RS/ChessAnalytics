@@ -81,7 +81,7 @@ describe("get user by id endpoint end to end tests", () => {
     expect(data.playTime.tv).toBe(17974);
   });
 
-  it("returns an error if the user ID is not given", async () => {
+  it("returns an invalid or missing id error if the user ID is not given", async () => {
     const response = await server.inject({
       method: "GET",
       url: userByIdEndpointUrl,
@@ -93,24 +93,7 @@ describe("get user by id endpoint end to end tests", () => {
     expect(data.error).toBe(INVALID_ID);
   });
 
-  it("returns an error if the user does not exist", async () => {
-    const nonExistingId = "nonExistentIdThatWillNotBeFound";
-
-    const response = await server.inject({
-      method: "GET",
-      url: userByIdEndpointUrl,
-      query: {
-        id: nonExistingId,
-      },
-    });
-
-    expect(response.statusCode).toBe(404);
-    const data = response.json();
-
-    expect(data.error).toBe(generalResponseMessages.USER_NOT_FOUND);
-  });
-
-  it("returns an error if the user id is invalid", async () => {
+  it("returns an invalid or missing id error if the user id is invalid", async () => {
     const invalidId = "1231231231231231312312312312312312123123132132123123123";
     serverMock.use(errorHandler(invalidId));
 
@@ -126,6 +109,23 @@ describe("get user by id endpoint end to end tests", () => {
     const data = response.json();
 
     expect(data.error).toBe(INVALID_ID);
+  });
+
+  it("returns a user not found error if the user does not exist", async () => {
+    const nonExistingId = "nonExistentIdThatWillNotBeFound";
+
+    const response = await server.inject({
+      method: "GET",
+      url: userByIdEndpointUrl,
+      query: {
+        id: nonExistingId,
+      },
+    });
+
+    expect(response.statusCode).toBe(404);
+    const data = response.json();
+
+    expect(data.error).toBe(generalResponseMessages.USER_NOT_FOUND);
   });
 
   it("returns a server error if the api fails", async () => {

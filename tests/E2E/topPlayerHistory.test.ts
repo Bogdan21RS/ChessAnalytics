@@ -104,7 +104,7 @@ describe("get user rating history end to end tests", () => {
     expect(data.history[1].rating).toBe(1332);
   });
 
-  it("returns an error if the top parameter is not given", async () => {
+  it("returns an invalid or missing top or mode error if the top parameter is not given", async () => {
     const response = await server.inject({
       method: "GET",
       url: ratingHistoryEndpointUrl,
@@ -119,7 +119,7 @@ describe("get user rating history end to end tests", () => {
     expect(data.error).toBe(INVALID_TOP_OR_MODE);
   });
 
-  it("returns an error if the game mode is not given", async () => {
+  it("returns an invalid or missing top or mode error if the game mode is not given", async () => {
     const response = await server.inject({
       method: "GET",
       url: ratingHistoryEndpointUrl,
@@ -134,7 +134,7 @@ describe("get user rating history end to end tests", () => {
     expect(data.error).toBe(INVALID_TOP_OR_MODE);
   });
 
-  it("returns an error if the top parameter is not a number", async () => {
+  it("returns an invalid or missing top or mode error if the top parameter is not a number", async () => {
     const response = await server.inject({
       method: "GET",
       url: ratingHistoryEndpointUrl,
@@ -150,7 +150,7 @@ describe("get user rating history end to end tests", () => {
     expect(data.error).toBe(INVALID_TOP_OR_MODE);
   });
 
-  it("returns an error if the top parameter is zero", async () => {
+  it("returns an invalid or missing top or mode error if the top parameter is zero", async () => {
     const response = await server.inject({
       method: "GET",
       url: ratingHistoryEndpointUrl,
@@ -165,7 +165,7 @@ describe("get user rating history end to end tests", () => {
 
     expect(data.error).toBe(INVALID_TOP_OR_MODE);
   });
-  it("returns an error if the top parameter is two-hundred and one", async () => {
+  it("returns an invalid or missing top or mode error if the top parameter is two-hundred and one", async () => {
     const response = await server.inject({
       method: "GET",
       url: ratingHistoryEndpointUrl,
@@ -181,25 +181,7 @@ describe("get user rating history end to end tests", () => {
     expect(data.error).toBe(INVALID_TOP_OR_MODE);
   });
 
-  it("returns an error if the selected player is not found", async () => {
-    serverMock.use(topTenFromModeHandlerWithoutUsername(existingMode));
-
-    const response = await server.inject({
-      method: "GET",
-      url: ratingHistoryEndpointUrl,
-      query: {
-        top: 1,
-        mode: existingMode,
-      },
-    });
-
-    expect(response.statusCode).toBe(404);
-    const data = response.json();
-
-    expect(data.error).toBe(generalResponseMessages.USER_NOT_FOUND);
-  });
-
-  it("returns an error if the game mode is invalid", async () => {
+  it("returns an invalid or missing top or mode error if the game mode is invalid", async () => {
     serverMock.use(topTenFromModeHandlerWithInvalidMode(nonExistingMode));
 
     const response = await server.inject({
@@ -215,6 +197,24 @@ describe("get user rating history end to end tests", () => {
     const data = response.json();
 
     expect(data.error).toBe(INVALID_TOP_OR_MODE);
+  });
+
+  it("returns a user not found error if the selected player is not found", async () => {
+    serverMock.use(topTenFromModeHandlerWithoutUsername(existingMode));
+
+    const response = await server.inject({
+      method: "GET",
+      url: ratingHistoryEndpointUrl,
+      query: {
+        top: 1,
+        mode: existingMode,
+      },
+    });
+
+    expect(response.statusCode).toBe(404);
+    const data = response.json();
+
+    expect(data.error).toBe(generalResponseMessages.USER_NOT_FOUND);
   });
 
   it("returns a server error if the api fails", async () => {
